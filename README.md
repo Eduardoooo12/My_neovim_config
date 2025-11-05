@@ -11,9 +11,11 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  Vim Enthusiasts wanting a modern experience
 
+
 ### ✨ Key Features #####
 
 🎯 Maximum Productivity
+
 ~  Smart dashboard with quick access to projects and settings
 
 ~  Workspace system for focused folder management
@@ -22,7 +24,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  Intuitive keymaps designed for maximum efficiency
 
+
 💻 Multi-Language Support
+
 ~  ☕ Java - Smart compilation with automatic library detection
 
 ~  🐍 Python - Fast execution with dedicated terminal
@@ -37,7 +41,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  🌐 Web - Live Server for HTML/CSS/JS
 
+
 🛠 Professional Tools
+
 ~  LSP (Language Server Protocol) - Intelligent auto-completion
 
 ~  Mason - Universal manager for LSPs, linters, and formatters
@@ -50,7 +56,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  Integrated Debugger - Debugging support with nvim-dap
 
+
 🎨 Visual Experience
+
 ~  Catppuccin Theme - Modern and elegant interface
 
 ~  Custom status bar with lualine
@@ -59,7 +67,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  Bufferline for efficient tab navigation
 
+
 🎮 Smart Keybindings
+
 ~  <leader>jc - Compile/Run Java (with libraries)
 
 ~  <leader>pr - Quick Python execution
@@ -76,7 +86,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  <leader>lss - Secure Live Server
 
+
 🔧 Specialized Systems
+
 ~  Workspace Management - Focus on specific project folders
 
 ~  Integrated Terminal - Multiple terminals with intelligent management
@@ -85,7 +97,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ~  Buffer Management - Safe closing without breaking layout
 
+
 🚀 Quick Installation
+
 1. Clone the repository: 
 
 git clone https://github.com/your-username/my_neovim_config ~/.config/nvim
@@ -93,33 +107,51 @@ git clone https://github.com/your-username/my_neovim_config ~/.config/nvim
 2. Install Neovim dependencies
 
 Ubuntu/Debian:
+
 sudo apt update && sudo apt install neovim git curl build-essential
 
 macOS:
+
 brew install neovim git curl
 
 3. Start Neovim and let plugins auto-install
 
 📋 Language Setup Guide
+
 Required Dependencies
+
 Ubuntu/Debian:
+
 # Base development tools
+
 sudo apt install gcc g++ make python3 python3-pip nodejs npm
+
 # Java
+
 sudo apt install openjdk-17-jdk
+
 # C/C++
+
 sudo apt install gdb cmake
+
 # PHP
+
 sudo apt install php
+
 # Web tools
+
 npm install -g live-server
 
+
 macOS:
+
 brew install gcc python node openjdk php
+
 npm install -g live-server
 
 ✅ Install All Language Servers at Once
 After starting Neovim, run this command to install all LSP servers automatically:
+
 :MasonInstall bash-language-server clangd css-lsp html-lsp intelephense jdtls json-lsp lua-language-server netcoredbg nimlsp omnisharp pyright yaml-language-server
 
 *Last updated: 11/05/2025 20:43:19*
