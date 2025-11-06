@@ -71,16 +71,22 @@ git clone https://github.com/your-username/my_neovim_config ~/.config/nvim
 ### 2. Install Neovim dependencies
 
 **Ubuntu/Debian:**
+
 sudo apt update && sudo apt install neovim git curl build-essential
 
 **macOS:**
+
 brew install neovim git curl
 
 **Windows:**
+
 Using Chocolatey (recommended)
+
 choco install neovim git curl
 
+
 Or using Winget
+
 winget install Neovim.Neovim Git.Git
 
 ### 3. Start Neovim and let plugins auto-install
@@ -92,35 +98,52 @@ nvim
 ### Required Dependencies
 
 **Ubuntu/Debian:**
+
 Base development tools
+
 sudo apt install gcc g++ make python3 python3-pip nodejs npm
 
 Java
+
 sudo apt install openjdk-17-jdk
 
 C/C++
+
 sudo apt install gdb cmake
 
 PHP
+
 sudo apt install php
 
 Web tools
+
 npm install -g live-server
+
 
 **macOS:**
+
 brew install gcc python node openjdk php
+
 npm install -g live-server
 
+
 **Windows:**
+
 Using Chocolatey
+
 choco install python nodejs openjdk php golang
+
 choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
 
 Install live-server globally
+
 npm install -g live-server
 
+
 Or using Winget
+
 winget install Python.Python.3 Node.js OpenJS.NodeJS PHP
+
 
 ### ✅ Install All Language Servers at Once
 
