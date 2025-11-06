@@ -64,146 +64,87 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ## 🚀 Quick Installation
 
-### 1. Clone the repository
-
+### Step 1: Clone the repository
 git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
 
-### 2. Install Neovim dependencies
+### Step 2: Install system dependencies
 
-**Ubuntu/Debian:**
+**For Ubuntu/Debian:**
+sudo apt update
+sudo apt install neovim git curl build-essential
 
-sudo apt update && sudo apt install neovim git curl build-essential
-
-**macOS:**
-
+**For macOS:**
 brew install neovim git curl
 
-**Windows:**
-
-Using Chocolatey (recommended)
-
+**For Windows:**
+# Install Chocolatey first, then:
 choco install neovim git curl
 
-
-Or using Winget
-
-winget install Neovim.Neovim Git.Git
-
-### 3. Start Neovim and let plugins auto-install
-
+### Step 3: Start Neovim
 nvim
 
-## 📋 Language Setup Guide
+Plugins will install automatically. Wait for the process to complete.
 
-### Required Dependencies
+## 📋 Complete Language Setup
+
+### Install Development Tools
 
 **Ubuntu/Debian:**
-
-Base development tools
-
 sudo apt install gcc g++ make python3 python3-pip nodejs npm
-
-Java
-
-sudo apt install openjdk-17-jdk
-
-C/C++
-
-sudo apt install gdb cmake
-
-PHP
-
-sudo apt install php
-
-Web tools
-
+sudo apt install openjdk-17-jdk gdb cmake php
 npm install -g live-server
-
 
 **macOS:**
-
 brew install gcc python node openjdk php
-
 npm install -g live-server
-
 
 **Windows:**
-
-Using Chocolatey
-
-choco install python nodejs openjdk php golang
-
-choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
-
-Install live-server globally
-
+choco install python nodejs openjdk php
+choco install visualstudio2022buildtools
 npm install -g live-server
 
+### Step 4: Install Language Servers
 
-Or using Winget
+After Neovim starts, run this single command:
 
-winget install Python.Python.3 Node.js OpenJS.NodeJS PHP
-
-
-### ✅ Install All Language Servers at Once
-
-After starting Neovim, run this command to install all LSP servers automatically:
-
-:MasonInstall bash-language-server clangd css-lsp html-lsp intelephense jdtls json-lsp lua-language-server netcoredbg nimlsp omnisharp pyright yaml-language-server
-
-Or use this shorter version:
 :MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls
 
-### One-Command Installation
+## 🛠 Quick Start Examples
 
-You can also run this single command to install everything:
-:lua vim.cmd("MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls")
-
-## 🛠 Usage Examples
-
-### Create and run a Python file:
-
+**Python:**
 print("Hello from Python!")
+# Press F6 to run
 
-Press `<F6>` to execute
-
-### Create and run a Java file:
-
-public class Hello {
+**Java:**
+public class Test {
     public static void main(String[] args) {
         System.out.println("Hello from Java!");
     }
 }
+# Press <leader>jc to run
 
-Press `<leader>jc` to compile and run with libraries, or `<F8>` for quick run
-
-### Web Development:
-
-Open any HTML file and use `<leader>lss` to start a live server
+**Web Development:**
+Open any HTML file and press <leader>lss to start live server
 
 ## 🆘 Troubleshooting
 
-If you encounter issues:
-
-1. **Check language installation:**
+**Check installations:**
 python3 --version
 java -version
 gcc --version
 
-2. **Verify LSP servers in Neovim:**
+**In Neovim:**
 :LspInfo
 :Mason
-
-3. **Update plugins:**
 :Lazy update
 
-## 📦 Integrated Technologies
+## 📦 Tech Stack
 
-- **Neovim ≥ 0.8** - Modern foundation
-- **Lazy.nvim** - Plugin manager
-- **Mason.nvim** - LSP management
-- **Treesitter** - Syntax parsing
-- **LSP Config** - Language server setup
+- Neovim ≥ 0.8
+- Lazy.nvim - Plugin manager
+- Mason.nvim - LSP manager
+- Treesitter - Syntax parsing
+- LSP Config - Language servers
 
 ---
 
