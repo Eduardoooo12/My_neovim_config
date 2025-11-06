@@ -66,7 +66,7 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ### 1. Clone the repository
 
-git clone https://github.com/your-username/my_neovim_config ~/.config/nvim
+git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
 
 ### 2. Install Neovim dependencies
 
