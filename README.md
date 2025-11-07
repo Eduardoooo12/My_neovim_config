@@ -44,45 +44,194 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 - **Devicons** for better file identification
 - **Bufferline** for efficient tab navigation
 
-## 🎮 Smart Keybindings
+## 🎮 Complete Keybinding System
 
-- `<leader>jc` - Compile/Run Java (with libraries)
-- `<leader>pr` - Quick Python execution
-- `<F5>` - Open terminal
-- `<F6>` - Run Python
-- `<F7>` - Compile + Run C/C++
-- `<F8>` - Compile + Run Java (without libraries)
-- `<F9>` - Compile + Run Nim
-- `<leader>lss` - Secure Live Server
+### ⌨️ Editing Shortcuts
 
-## 🔧 Specialized Systems
+| Shortcut | Mode | Description |
+|----------|------|-------------|
+| `jk` | Insert | Exit insert mode |
+| `<C-BS>` | Insert | Delete previous word |
+| `<C-H>` | Insert | Delete previous word |
+| `<C-z>` | Insert/Normal | Undo |
+| `<A-CR>` | Insert | New line below |
+| `<C-Enter>` | Insert | Always new line below |
+| `<C-s>` | Insert/Normal | Save file |
 
-- **Workspace Management** - Focus on specific project folders
-- **Integrated Terminal** - Multiple terminals with intelligent management
-- **Error Handling** - System to silence annoying errors
-- **Buffer Management** - Safe closing without breaking layout
+### 🏠 Navigation & Interface
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>dd` | Open Dashboard |
+| `<leader>df` | Diagnose and fix LSP |
+| `<leader>as` | Toggle Auto-save |
+| `<leader>cm` | Clear messages |
+| `<C-b>` | Toggle file explorer (Neo-tree) |
+| `<leader>e` | Focus file explorer |
+| `<Tab>` | Next buffer |
+| `<S-Tab>` | Previous buffer |
+| `<C-w>` | Safe buffer close |
+
+### 📁 Workspace System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>wo` | Open folder selector |
+| `<leader>wr` | Reset folder focus |
+| `<leader>wp` | Show focused folder |
+| `<leader>wx` | Open folder in explorer |
+
+### 🖥️ Terminal System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>th` | Open horizontal terminal |
+| `<leader>tv` | Open vertical terminal |
+| `<leader>tt` | Toggle terminal |
+| `<leader>tc` | Close all terminals |
+| `<leader>cx` | Close current terminal |
+
+### ☕ Java System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>jc` | Compile/Run Java (with libs) |
+| `<leader>jr` | Quick Java (no libs) |
+| `<leader>jp` | Show classpath |
+| `<leader>jd` | Compile for debug |
+| `<leader>jn` | Create Java project |
+| `<leader>jt` | Java template |
+| `<F8>` | Quick Java test |
+
+### 🐍 Python System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>pr` | Quick Python execution |
+| `<leader>pc` | Close Python terminal |
+| `<leader>pk` | Run and keep terminal |
+| `<leader>ps` | Run selected code |
+| `<leader>pt` | Python template |
+| `<F6>` | Run Python |
+
+### 🅒 C/C++ System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>cc` | Compile C/C++ |
+| `<leader>cr` | Run C/C++ |
+| `<leader>cd` | Debug with GDB |
+| `<leader>cn` | Create C project |
+| `<leader>cN` | Create C++ project |
+| `<leader>ct` | C template |
+| `<leader>cT` | C++ template |
+| `<F7>` | Compile + Run C/C++ |
+
+### ⚡ C# System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>#c` | Compile C# |
+| `<leader>#r` | Run C# |
+| `<leader>#d` | Debug C# |
+| `<leader>#n` | Create C# project |
+| `<leader>#t` | C# template |
+| `<F10>` | Compile + Run C# |
+
+### 🐍 Nim System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>nc` | Compile Nim |
+| `<leader>nr` | Run Nim |
+| `<leader>ns` | Run Nim script |
+| `<leader>nd` | Compile+Run Nim |
+| `<leader>nn` | Create Nim project |
+| `<leader>nt` | Nim template |
+| `<F9>` | Compile+Run Nim |
+
+### 🐘 PHP System
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>phr` | Run PHP in terminal |
+| `<leader>phs` | Fixed PHP Server |
+| `<leader>phS` | Ultra-Simple PHP |
+| `<leader>phq` | Stop PHP server |
+| `<leader>phd` | PHP system debug |
+| `<leader>pht` | PHP template |
+| `<leader>phn` | Create PHP project |
+
+### 🌐 Live Server
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>lss` | Start secure Live Server |
+| `<leader>lsq` | Stop Live Server |
+| `<leader>lsl` | Check Live Server status |
+
+### 🔍 Search & Navigation
+
+| Shortcut | Description |
+|----------|-------------|
+| `<leader>ff` | Find files |
+| `<leader>fg` | Live grep |
+| `<leader>fb` | Find buffers |
+| `<leader>fh` | Help tags |
+| `<leader>fr` | Recent files |
+
+### 🛠️ LSP & Development
+
+| Shortcut | Description |
+|----------|-------------|
+| `gd` | Go to definition |
+| `K` | Hover information |
+| `gr` | References |
+| `<leader>ca` | Code actions |
+| `<leader>rn` | Rename |
+| `<leader>fm` | Format code |
+
+### 🎯 Function Keys
+
+| Key | Description |
+|-----|-------------|
+| `<F5>` | Open clean terminal |
+| `<F6>` | Run Python |
+| `<F7>` | Compile + Run C/C++ |
+| `<F8>` | Quick Java test |
+| `<F9>` | Compile+Run Nim |
+| `<F10>` | Compile+Run C# |
 
 ## 🚀 Quick Installation
 
 ### Step 1: Clone the repository
+```
 git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
+```
 
 ### Step 2: Install system dependencies
 
 **For Ubuntu/Debian:**
+```
 sudo apt update
 sudo apt install neovim git curl build-essential
+```
 
 **For macOS:**
+```
 brew install neovim git curl
+```
 
 **For Windows:**
 # Install Chocolatey first, then:
+```
 choco install neovim git curl
+```
 
 ### Step 3: Start Neovim
+```
 nvim
-
+```
 Plugins will install automatically. Wait for the process to complete.
 
 ## 📋 Complete Language Setup
@@ -90,37 +239,48 @@ Plugins will install automatically. Wait for the process to complete.
 ### Install Development Tools
 
 **Ubuntu/Debian:**
+```
 sudo apt install gcc g++ make python3 python3-pip nodejs npm
 sudo apt install openjdk-17-jdk gdb cmake php
 npm install -g live-server
+```
 
 **macOS:**
+```
 brew install gcc python node openjdk php
 npm install -g live-server
+```
 
 **Windows:**
+```
 choco install python nodejs openjdk php
 choco install visualstudio2022buildtools
 npm install -g live-server
+```
 
 ### Step 4: Install Language Servers
 
 After Neovim starts, run this single command:
-
+```
 :MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls
+```
 
 ## 🛠 Quick Start Examples
 
 **Python:**
+```
 print("Hello from Python!")
+```
 # Press F6 to run
 
 **Java:**
+```
 public class Test {
     public static void main(String[] args) {
         System.out.println("Hello from Java!");
     }
 }
+```
 # Press <leader>jc to run
 
 **Web Development:**
@@ -129,14 +289,18 @@ Open any HTML file and press <leader>lss to start live server
 ## 🆘 Troubleshooting
 
 **Check installations:**
+```
 python3 --version
 java -version
 gcc --version
+```
 
 **In Neovim:**
+```
 :LspInfo
 :Mason
 :Lazy update
+```
 
 ## 📦 Tech Stack
 
@@ -150,4 +314,4 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 11/05/2025*
+*Last updated: 06/nov/2025*
