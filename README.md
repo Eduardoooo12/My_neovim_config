@@ -314,4 +314,6 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 06/nov/2025*
+*Last updated: 12/nov/2025*
+
+- Show/hide hidden files with Ctrl+H
