@@ -2469,8 +2469,8 @@ local function setup_plugins()
           enable_diagnostics = true,
           filesystem = {
             filtered_items = {
-              visible = true,
-              hide_dotfiles = false,
+              visible = false,
+              hide_dotfiles = true,
               hide_gitignored = true,
             },
             follow_current_file = { enabled = false },
@@ -2500,6 +2500,7 @@ local function setup_plugins()
               ["p"] = "paste_from_clipboard",
               ["y"] = "copy", 
               ["?"] = "show_help",
+              ["H"] = "toggle_hidden",
             },
           },
         })
