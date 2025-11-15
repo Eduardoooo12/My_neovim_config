@@ -204,10 +204,27 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ## 🚀 Quick Installation
 
-### Step 1: Clone the repository
+### Step 1:
+
+**FOR LINUX OR MACOS**
+
+```
+# Create directory if it doesn't exist
+mkdir -p ~/.config/nvim
+```
+
+Direct Clone (Recommended)
 ```
 git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
 ```
+
+**FOR WINDOWS**
+
+```
+# Clone to Neovim directory
+git clone https://github.com/Eduardoooo12/My_neovim_config $env:LOCALAPPDATA\nvim
+```
+
 
 ### Step 2: Install system dependencies
 
@@ -225,7 +242,13 @@ brew install neovim git curl
 **For Windows:**
 # Install Chocolatey first, then:
 ```
-choco install neovim git curl
+# Via Chocolatey
+choco install neovim
+```
+
+```
+# Or via Winget
+winget install Neovim.Neovim
 ```
 
 ### Step 3: Start Neovim
@@ -261,6 +284,10 @@ npm install -g live-server
 ### Step 4: Install Language Servers
 
 After Neovim starts, run this single command:
+
+press : in your neovim and paste this command:
+
+
 ```
 :MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls
 ```
