@@ -225,7 +225,6 @@ git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
 git clone https://github.com/Eduardoooo12/My_neovim_config $env:LOCALAPPDATA\nvim
 ```
 
-
 ### Step 2: Install system dependencies
 
 **For Ubuntu/Debian:**
@@ -240,6 +239,15 @@ brew install neovim git curl
 ```
 
 **For Windows:**
+
+**Instaling choco**
+
+run this command in your powershell as admin:
+
+```
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
 **Install Chocolatey first, then:**
 ```
 # Via Chocolatey
@@ -286,7 +294,6 @@ npm install -g live-server
 After Neovim starts, run this single command:
 
 press : in your neovim and paste this command:
-
 
 ```
 :MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls
