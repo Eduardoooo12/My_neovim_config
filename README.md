@@ -240,7 +240,7 @@ brew install neovim git curl
 ```
 
 **For Windows:**
-# Install Chocolatey first, then:
+**Install Chocolatey first, then:**
 ```
 # Via Chocolatey
 choco install neovim
