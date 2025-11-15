@@ -1,5 +1,5 @@
 -- =============================================
--- 🚀 CONFIGURAÇÃO PRINCIPAL DO NVIM
+-- 🚀 CONFIGURAÇÃO PRINCIPAL DO NVIM - CORRIGIDA
 -- =============================================
 
 -- =============================================
@@ -165,7 +165,71 @@ local function create_close_button(buf)
 end
 
 -- =============================================
--- 4. 🎯 SISTEMA DE ATALHOS (KEYMAPS)
+-- 4. 🔧 DIAGNÓSTICO E RESET DE SYNTAX HIGHLIGHTING
+-- =============================================
+
+function _G.diagnose_syntax_issues()
+  print("🔍 Diagnosticando problemas de syntax highlighting...")
+  
+  -- Verifica Treesitter
+  local ts_ok = pcall(require, "nvim-treesitter")
+  if ts_ok then
+    local parsers = require("nvim-treesitter.parsers").get_parser_configs()
+    local current_ft = vim.bo.filetype
+    local has_parser = parsers[current_ft] ~= nil
+    
+    print("🌳 Treesitter: " .. (ts_ok and "✅ Carregado" or "❌ Falhou"))
+    print("📄 Filetype atual: " .. (current_ft or "Nenhum"))
+    print("🔤 Parser disponível: " .. (has_parser and "✅ Sim" or "❌ Não"))
+    
+    if has_parser then
+      local parser_loaded = require("nvim-treesitter.parsers").has_parser(current_ft)
+      print("📦 Parser carregado: " .. (parser_loaded and "✅ Sim" or "❌ Não"))
+    end
+  else
+    print("❌ Treesitter não carregado")
+  end
+  
+  -- Verifica LSP
+  local clients = vim.lsp.get_active_clients()
+  print("\n🎯 LSPs Ativos (" .. #clients .. "):")
+  for _, client in ipairs(clients) do
+    print("  " .. client.name .. " - " .. (client.initialized and "🟢" or "🟡"))
+  end
+  
+  -- Verifica cores do tema
+  print("\n🎨 Tema: " .. (vim.g.colors_name or "Não definido"))
+end
+
+function _G.reset_syntax_highlighting()
+  print("🔄 Resetando syntax highlighting...")
+  
+  -- Recarrega o arquivo atual
+  vim.cmd("edit!")
+  
+  -- Recarrega Treesitter se estiver disponível
+  local ts_ok = pcall(require, "nvim-treesitter")
+  if ts_ok then
+    vim.cmd("TSDisable highlight")
+    vim.cmd("TSEnable highlight")
+    print("🌳 Treesitter recarregado")
+  end
+  
+  -- Recarrega LSP
+  local clients = vim.lsp.get_active_clients()
+  for _, client in ipairs(clients) do
+    vim.lsp.stop_client(client.id)
+  end
+  
+  vim.defer_fn(function()
+    vim.cmd("LspRestart")
+    print("🎯 LSP reiniciado")
+    print("✅ Syntax highlighting resetado!")
+  end, 500)
+end
+
+-- =============================================
+-- 5. 🎯 SISTEMA DE ATALHOS (KEYMAPS)
 -- =============================================
 
 local function setup_keymaps()
@@ -193,6 +257,8 @@ local function setup_keymaps()
   vim.keymap.set("n", "<leader>df", "<cmd>lua diagnose_and_fix_lsp()<CR>", { desc = "🔍 Diagnosticar e reparar LSP" })
   vim.keymap.set('n', '<leader>as', '<cmd>lua toggle_auto_save()<CR>', { desc = 'Toggle Auto-save' })
   vim.keymap.set("n", "<leader>cm", "<cmd>lua clear_messages()<CR>", { desc = "🧹 Limpar mensagens" })
+  vim.keymap.set("n", "<leader>ds", "<cmd>lua diagnose_syntax_issues()<CR>", { desc = "🔍 Diagnosticar syntax" })
+  vim.keymap.set("n", "<leader>rs", "<cmd>lua reset_syntax_highlighting()<CR>", { desc = "🔄 Resetar syntax" })
 
   -- 📁 WORKSPACE
   vim.keymap.set("n", "<leader>wo", "<cmd>lua focus_project_folder()<CR>", { desc = "📁 Abrir seletor de pastas" })
@@ -258,12 +324,10 @@ local function setup_keymaps()
     print("🗑️ Fechados " .. closed_count .. " terminais")
   end, { desc = "🗑️ Fechar todos os terminais" })
 
-  -- ☕ JAVA
-  vim.keymap.set("n", "<leader>jc", "<cmd>lua smart_java_runner()<CR>", { desc = "🚀 Compilar/Executar Java (com libs)" })
+  -- ☕ JAVA (SISTEMA DO CÓDIGO 2)
+  vim.keymap.set("n", "<leader>jc", "<cmd>lua smart_java_runner()<CR>", { desc = "🚀 Java com bibliotecas" })
   vim.keymap.set("n", "<leader>jr", "<cmd>lua quick_java_runner()<CR>", { desc = "⚡ Java rápido (sem libs)" })
   vim.keymap.set("n", "<leader>jp", "<cmd>lua show_java_classpath()<CR>", { desc = "🔍 Ver classpath" })
-  vim.keymap.set("n", "<leader>jd", "<cmd>lua debug_java()<CR>", { desc = "🐛 Compilar para debug" })
-  vim.keymap.set("n", "<leader>jn", "<cmd>lua create_java_project()<CR>", { desc = "🆕 Criar projeto Java" })
   vim.keymap.set("n", "<leader>jt", "<cmd>lua java_template()<CR>", { desc = "📝 Template Java" })
 
   -- 🐍 PYTHON
@@ -425,40 +489,8 @@ local function setup_keymaps()
     end
   end, { desc = "⚡ Compilar + Executar C/C++" })
 
-  vim.keymap.set("n", "<F8>", function()
-    local current_file = vim.fn.expand("%:p")
-    if not string.match(current_file, "%.java$") then
-      print("❌ Este não é um arquivo Java! Use F5 para terminal geral.")
-      return
-    end
-    
-    local file_dir = vim.fn.expand("%:p:h")
-    local class_name = vim.fn.expand("%:t:r")
-    local file_name = vim.fn.expand("%:t")
-    
-    print("🔨 Compilando " .. file_name .. "...")
-    
-    local compile_cmd = string.format("cd '%s' && javac '%s'", file_dir, file_name)
-    local compile_result = vim.fn.system(compile_cmd)
-    
-    if compile_result ~= "" then
-      print("❌ Erro de compilação:")
-      print(compile_result)
-      return
-    end
-    
-    local run_cmd = string.format("cd '%s' && java %s", file_dir, class_name)
-    
-    vim.cmd("belowright split")
-    vim.cmd("resize 10")
-    vim.cmd("terminal " .. run_cmd)
-    
-    local term_buf = vim.api.nvim_get_current_buf()
-    create_close_button(term_buf)
-    
-    vim.cmd("startinsert")
-    print("☕ Java executado: " .. class_name)
-  end, { desc = "🧪 Teste rápido Java" })
+  -- 🚀 F8 AGORA EXECUTA JAVA COM BIBLIOTECAS (DO CÓDIGO 2)
+  vim.keymap.set("n", "<F8>", "<cmd>lua smart_java_runner()<CR>", { desc = "🚀 Executar Java (com libs)" })
 
   vim.keymap.set("n", "<F9>", function()
     local current_file = vim.fn.expand("%:p")
@@ -480,7 +512,7 @@ local function setup_keymaps()
 end
 
 -- =============================================
--- 5. 💾 SISTEMA DE AUTO-SAVE
+-- 6. 💾 SISTEMA DE AUTO-SAVE
 -- =============================================
 
 local function setup_auto_save()
@@ -529,7 +561,7 @@ local function setup_auto_save()
 end
 
 -- =============================================
--- 6. 🗂️ SISTEMA DE WORKSPACE
+-- 7. 🗂️ SISTEMA DE WORKSPACE
 -- =============================================
 
 local function setup_workspace()
@@ -622,7 +654,7 @@ local function setup_workspace()
 end
 
 -- =============================================
--- 7. 🔧 SISTEMA DE BUFFERS E JANELAS
+-- 8. 🔧 SISTEMA DE BUFFERS E JANELAS
 -- =============================================
 
 local function setup_buffer_system()
@@ -716,7 +748,7 @@ local function setup_buffer_system()
 end
 
 -- =============================================
--- 8. 💻 SISTEMAS DE LINGUAGEM
+-- 9. 💻 SISTEMAS DE LINGUAGEM
 -- =============================================
 
 -- Sistema Python
@@ -1132,61 +1164,35 @@ int main(int argc, char *argv[]) {
   end
 end
 
--- Sistema Java
+-- 9.3 ☕ SISTEMA JAVA SIMPLIFICADO (DO CÓDIGO 2)
 local function setup_java_system()
   vim.g.java_projects_path = os.getenv("HOME") .. "/Área de Trabalho/tudo/projetos/Java"
 
+  -- 🔍 DETECTAR BIBLIOTECAS JAVA DE FORMA SIMPLES
   function _G.detect_java_libraries()
     local current_dir = vim.fn.expand("%:p:h")
     local lib_dirs = {
       os.getenv("HOME") .. "/bibliotecas-java",
-      vim.g.java_projects_path,
       current_dir .. "/lib",
       current_dir .. "/libs",
-      current_dir .. "/bibliotecas",
       current_dir,
     }
     
     local found_jars = {}
-    
-    print("🔍 Procurando bibliotecas Java...")
     
     for _, lib_dir in ipairs(lib_dirs) do
       if vim.fn.isdirectory(lib_dir) == 1 then
         local jars = vim.fn.globpath(lib_dir, "**/*.jar", 0, 1)
         for _, jar in ipairs(jars) do
           table.insert(found_jars, jar)
-          print("   📦 Encontrado: " .. vim.fn.fnamemodify(jar, ":t"))
         end
       end
     end
     
-    local specific_libs = {
-      vim.g.java_projects_path .. "/**/escrita-devagar*.jar",
-      vim.g.java_projects_path .. "/**/escreverdevagar*.jar",
-      vim.g.java_projects_path .. "/**/*devagar*.jar",
-    }
-    
-    for _, pattern in ipairs(specific_libs) do
-      local jars = vim.fn.glob(pattern, 0, 1)
-      for _, jar in ipairs(jars) do
-        table.insert(found_jars, jar)
-        print("   📦 Específico: " .. vim.fn.fnamemodify(jar, ":t"))
-      end
-    end
-    
-    local unique_jars = {}
-    local seen = {}
-    for _, jar in ipairs(found_jars) do
-      if not seen[jar] then
-        table.insert(unique_jars, jar)
-        seen[jar] = true
-      end
-    end
-    
-    return unique_jars
+    return found_jars
   end
 
+  -- 🚀 EXECUTOR JAVA PRINCIPAL (COM LIBS) - AGORA NO F8
   function _G.smart_java_runner()
     local current_file = vim.fn.expand("%:p")
     local file_dir = vim.fn.expand("%:p:h")
@@ -1198,6 +1204,7 @@ local function setup_java_system()
       return
     end
     
+    -- Detectar bibliotecas
     local libraries = _G.detect_java_libraries()
     local classpath_parts = {"."}
     
@@ -1210,9 +1217,10 @@ local function setup_java_system()
     if #libraries > 0 then
       print("📚 " .. #libraries .. " biblioteca(s) detectada(s)")
     else
-      print("ℹ️  Nenhuma biblioteca adicional detectada")
+      print("ℹ️ Nenhuma biblioteca adicional detectada")
     end
     
+    -- Compilar
     print("🔨 Compilando " .. file_name .. "...")
     
     local compile_cmd = string.format(
@@ -1222,8 +1230,6 @@ local function setup_java_system()
       file_name
     )
     
-    print("   Comando: javac -cp [classpath] " .. file_name)
-    
     local compile_result = vim.fn.system(compile_cmd)
     
     if compile_result ~= "" then
@@ -1232,66 +1238,25 @@ local function setup_java_system()
       return false
     end
     
-    local class_file = file_dir .. "/" .. class_name .. ".class"
-    if vim.fn.filereadable(class_file) == 0 then
-      print("❌ Arquivo .class não foi gerado: " .. class_name .. ".class")
-      return false
-    end
-    
+    -- Executar
     print("✅ Compilação bem-sucedida!")
     print("🚀 Executando " .. class_name .. "...")
     
-    local file_content = vim.fn.readfile(current_file)
-    local has_package = false
-    for _, line in ipairs(file_content) do
-      if line:match("^package%s+") then
-        has_package = true
-        break
-      end
-    end
+    local run_cmd = string.format(
+      "cd '%s' && java -cp '%s' %s",
+      file_dir,
+      classpath,
+      class_name
+    )
     
-    local run_cmd
-    if has_package then
-      local bin_dir = file_dir .. "/bin"
-      vim.fn.mkdir(bin_dir, "p")
-      
-      local compile_bin_cmd = string.format(
-        "cd '%s' && javac -d bin -cp '%s' '%s'",
-        file_dir,
-        classpath,
-        file_name
-      )
-      
-      local bin_compile_result = vim.fn.system(compile_bin_cmd)
-      if bin_compile_result ~= "" then
-        print("❌ Erro ao compilar para bin:")
-        print(bin_compile_result)
-        return false
-      end
-      
-      run_cmd = string.format(
-        "cd '%s' && java -cp 'bin:%s' %s",
-        file_dir,
-        classpath,
-        class_name
-      )
-    else
-      run_cmd = string.format(
-        "cd '%s' && java -cp '%s' %s",
-        file_dir,
-        classpath,
-        class_name
-      )
-    end
-    
-    print("   Comando: java -cp [classpath] " .. class_name)
-    
+    -- Abrir terminal para execução
     vim.cmd("belowright split")
     vim.cmd("resize 12")
     vim.cmd("terminal " .. run_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
     
+    -- Botão para fechar terminal
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
@@ -1303,6 +1268,7 @@ local function setup_java_system()
     return true
   end
 
+  -- ⚡ EXECUTOR JAVA RÁPIDO (SEM LIBS)
   function _G.quick_java_runner()
     local current_file = vim.fn.expand("%:p")
     local file_dir = vim.fn.expand("%:p:h")
@@ -1332,12 +1298,20 @@ local function setup_java_system()
     vim.cmd("terminal " .. run_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
-    create_close_button(term_buf)
+    
+    -- Botão para fechar terminal
+    vim.keymap.set('n', '<leader>cx', function()
+      if vim.api.nvim_buf_is_valid(term_buf) then
+        vim.api.nvim_buf_delete(term_buf, { force = true })
+        print("🗑️ Terminal fechado")
+      end
+    end, { buffer = term_buf, desc = "Fechar terminal" })
     
     vim.cmd("startinsert")
     print("☕ Java executado: " .. class_name)
   end
 
+  -- 🔍 VER CLASSPATH (OPCIONAL)
   function _G.show_java_classpath()
     local libraries = _G.detect_java_libraries()
     
@@ -1345,108 +1319,19 @@ local function setup_java_system()
       print("📚 JARs no classpath (" .. #libraries .. " encontrados):")
       for _, jar in ipairs(libraries) do
         local jar_name = vim.fn.fnamemodify(jar, ":t")
-        local jar_dir = vim.fn.fnamemodify(jar, ":h")
         print("   📦 " .. jar_name)
-        print("      📁 " .. jar_dir)
       end
     else
-      print("ℹ️  Nenhum JAR adicional encontrado")
+      print("ℹ️ Nenhum JAR adicional encontrado")
     end
   end
 
-  function _G.set_java_projects_path()
-    local new_path = vim.fn.input("Nova pasta de projetos Java: ", vim.g.java_projects_path)
-    
-    if new_path ~= "" and vim.fn.isdirectory(new_path) == 1 then
-      vim.g.java_projects_path = new_path
-      print("✅ Pasta de projetos definida: " .. new_path)
-    else
-      print("❌ Pasta inválida: " .. new_path)
-    end
-  end
-
-  function _G.debug_java()
-    local current_file = vim.fn.expand("%:p")
-    local file_dir = vim.fn.expand("%:p:h")
-    local file_name = vim.fn.expand("%:t")
-    local class_name = vim.fn.expand("%:t:r")
-    
-    if not current_file:match("%.java$") then
-      print("❌ Não é um arquivo Java!")
-      return
-    end
-    
-    print("🐛 Compilando para debug...")
-    local compile_cmd = string.format("cd '%s' && javac -g '%s'", file_dir, file_name)
-    local compile_result = vim.fn.system(compile_cmd)
-    
-    if compile_result ~= "" then
-      print("❌ Erro de compilação:")
-      print(compile_result)
-      return
-    end
-    
-    print("✅ Compilado com informações de debug")
-    print("💡 Use: jdb " .. class_name .. " para depurar")
-  end
-
-  function _G.create_java_project()
-    local project_name = vim.fn.input("Nome do projeto Java: ")
-    if project_name == "" then return end
-    
-    vim.fn.mkdir(project_name, "p")
-    vim.fn.mkdir(project_name .. "/src", "p")
-    vim.fn.mkdir(project_name .. "/lib", "p")
-    
-    local main_file = io.open(project_name .. "/src/Main.java", "w")
-    if main_file then
-      main_file:write([[
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-        
-        for (int i = 1; i <= 5; i++) {
-            System.out.println("Contagem: " + i);
-        }
-    }
-}
-]])
-      main_file:close()
-    end
-    
-    local compile_script = io.open(project_name .. "/compile.sh", "w")
-    if compile_script then
-      compile_script:write([[
-#!/bin/bash
-echo "Compilando projeto Java..."
-javac -cp "lib/*" src/*.java
-if [ $? -eq 0 ]; then
-    echo "Compilação bem-sucedida!"
-    echo "Executando..."
-    java -cp "src:lib/*" Main
-else
-    echo "Erro na compilação!"
-fi
-]])
-      compile_script:close()
-      vim.fn.system("chmod +x '" .. project_name .. "/compile.sh'")
-    end
-    
-    vim.cmd("cd " .. project_name)
-    vim.cmd("edit src/Main.java")
-    
-    print("✅ Projeto Java criado: " .. project_name)
-  end
-
+  -- 📝 TEMPLATE JAVA SIMPLES
   function _G.java_template()
     local template = [[
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello World!");
-        
-        for (int i = 1; i <= 5; i++) {
-            System.out.println("Contagem: " + i);
-        }
     }
 }
 ]]
@@ -2060,7 +1945,7 @@ namespace HelloWorld
 end
 
 -- =============================================
--- 9. 🔧 FUNÇÕES DE DIAGNÓSTICO E UTILITÁRIAS
+-- 10. 🔧 FUNÇÕES DE DIAGNÓSTICO E UTILITÁRIAS
 -- =============================================
 
 local function setup_utility_functions()
@@ -2156,7 +2041,7 @@ if __name__ == "__main__":
 end
 
 -- =============================================
--- 10. ⚡ LAZY.NVIM - GERENCIADOR DE PLUGINS
+-- 11. ⚡ LAZY.NVIM - GERENCIADOR DE PLUGINS (CORRIGIDO)
 -- =============================================
 
 local function setup_plugins()
@@ -2174,11 +2059,12 @@ local function setup_plugins()
   vim.opt.rtp:prepend(lazypath)
 
   require("lazy").setup({
-    -- TEMA  
+    -- TEMA CORRIGIDO
     {
       "catppuccin/nvim",
       lazy = false,
       priority = 1000,
+      name = "catppuccin",
       config = function()
         require("catppuccin").setup({
           flavour = "mocha",
@@ -2206,16 +2092,24 @@ local function setup_plugins()
             telescope = true,
             neo_tree = true,
             lsp_trouble = true,
+            indent_blankline = true,
           }
         })
         
+        -- 🔥 FORÇA O CARREGAMENTO DO TEMA
         vim.cmd.colorscheme("catppuccin")
+        
+        -- Configurações adicionais para melhorar visualização
+        vim.opt.termguicolors = true
         vim.opt.cursorline = true
         vim.opt.cursorlineopt = "number,line"
         
-        vim.api.nvim_set_hl(0, 'LineNr', { fg = '#333333', bold = true })
+        -- Reset dos highlights problemáticos
+        vim.api.nvim_set_hl(0, 'LineNr', { fg = '#8b949e', bold = false })
         vim.api.nvim_set_hl(0, 'CursorLineNr', { fg = '#fffb00', bold = true })
         vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2b3339' })
+        vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+        vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
       end,
     },
 
@@ -2243,7 +2137,7 @@ local function setup_plugins()
           ensure_installed = {
             "lua_ls", "pyright", "html", "cssls", "jsonls", 
             "yamlls", "bashls", "clangd", "jdtls", "nimls",
-            "omnisharp", "intelephense"
+            "omnisharp", "intelephense", "phpactor"
           },
           automatic_installation = false,
         })
@@ -2289,7 +2183,8 @@ local function setup_plugins()
           "jdtls",
           "nimls",
           "omnisharp",
-          "intelephense"
+          "intelephense",
+          "phpactor"
         }
 
         for _, server in ipairs(servers) do
@@ -2379,6 +2274,31 @@ local function setup_plugins()
           local hl = "DiagnosticSign" .. type
           vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
         end
+      end,
+    },
+
+    -- TREESITTER CORRIGIDO
+    {
+      "nvim-treesitter/nvim-treesitter",
+      build = ":TSUpdate",
+      config = function()
+        require("nvim-treesitter.configs").setup({
+          highlight = { 
+            enable = true,
+            additional_vim_regex_highlighting = false,
+          },
+          indent = { enable = true },
+          auto_install = true,
+          ensure_installed = {
+            "lua", "python", "html", "css", "javascript", "typescript",
+            "cpp", "bash", "json", "yaml", "markdown", "vim",
+            "java", "nim", "c_sharp", "php"
+          },
+        })
+        
+        -- 🔥 ADICIONE ESTAS LINHAS PARA FORÇAR O CARREGAMENTO:
+        vim.cmd("TSEnable highlight")
+        vim.cmd("TSEnable indent")
       end,
     },
 
@@ -2645,6 +2565,11 @@ local function setup_plugins()
               color = "#9b4993",
               name = "CSharpProject"
             },
+            php = {
+              icon = "",
+              color = "#8993be",
+              name = "PHP"
+            },
           },
           default = true
         })
@@ -2656,27 +2581,6 @@ local function setup_plugins()
       "folke/which-key.nvim",
       config = function()
         require("which-key").setup()
-      end,
-    },
-
-    -- TREESITTER
-    {
-      "nvim-treesitter/nvim-treesitter",
-      build = ":TSUpdate",
-      config = function()
-        require("nvim-treesitter.configs").setup({
-          highlight = { 
-            enable = true,
-            additional_vim_regex_highlighting = false,
-          },
-          indent = { enable = true },
-          auto_install = true,
-          ensure_installed = {
-            "lua", "python", "html", "css", "javascript", "typescript",
-            "cpp", "bash", "json", "yaml", "markdown", "vim",
-            "java", "nim", "c_sharp"
-          },
-        })
       end,
     },
 
@@ -2833,7 +2737,7 @@ local function setup_plugins()
 end
 
 -- =============================================
--- 11. 🎯 CONFIGURAÇÕES ESPECÍFICAS POR LINGUAGEM
+-- 12. 🎯 CONFIGURAÇÕES ESPECÍFICAS POR LINGUAGEM
 -- =============================================
 
 local function setup_language_specific()
@@ -2871,7 +2775,7 @@ local function setup_language_specific()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("☕ Modo Java ativado! Use <leader>jc para execução com bibliotecas")
+      print("☕ Modo Java ativado! Use F8 para execução com bibliotecas")
     end
   })
 
@@ -2899,7 +2803,7 @@ local function setup_language_specific()
 end
 
 -- =============================================
--- 12. 🎯 DASHBOARD INTELIGENTE (CORRIGIDO)
+-- 13. 🎯 DASHBOARD INTELIGENTE (CORRIGIDO)
 -- =============================================
 
 local function setup_dashboard()
@@ -3004,6 +2908,24 @@ local function setup_dashboard()
 end
 
 -- =============================================
+-- 14. 🔧 DEBUG DE FILETYPES
+-- =============================================
+
+-- Debug de filetypes (opcional - desative se não precisar)
+vim.api.nvim_create_autocmd({"BufEnter", "FileType"}, {
+  callback = function(args)
+    local ft = vim.bo.filetype
+    local bufname = vim.api.nvim_buf_get_name(args.buf)
+    
+    -- Só mostra debug para arquivos reais (não temporários)
+    if bufname ~= "" and not string.match(bufname, "^term://") then
+      -- Comente a linha abaixo se o debug estiver muito verboso
+      -- print("📁 Arquivo: " .. vim.fn.fnamemodify(bufname, ":t") .. " | 🏷️  Filetype: " .. ft)
+    end
+  end,
+})
+
+-- =============================================
 -- 🚀 INICIALIZAÇÃO PRINCIPAL
 -- =============================================
 
@@ -3016,7 +2938,7 @@ local function init()
   setup_buffer_system()
   setup_python_system()
   setup_c_cpp_system()
-  setup_java_system()
+  setup_java_system()  -- Sistema Java do código 2
   setup_nim_system()
   setup_php_system()
   setup_csharp_system()
@@ -3024,6 +2946,7 @@ local function init()
   setup_plugins()
   setup_language_specific()
   setup_dashboard()
+
 end
 
 -- =============================================
@@ -3031,5 +2954,3 @@ end
 -- =============================================
 
 init()
-
---print("🚀 Neovim organizado carregado com sucesso!")
