@@ -204,9 +204,25 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 ## 🚀 Quick Installation
 
-### Step 1: Clone the repository
+### Step 1:
+
+**FOR LINUX OR MACOS**
+
+```
+# Create directory if it doesn't exist
+mkdir -p ~/.config/nvim
+```
+
+Direct Clone (Recommended)
 ```
 git clone https://github.com/Eduardoooo12/My_neovim_config ~/.config/nvim
+```
+
+**FOR WINDOWS**
+
+```
+# Clone to Neovim directory
+git clone https://github.com/Eduardoooo12/My_neovim_config $env:LOCALAPPDATA\nvim
 ```
 
 ### Step 2: Install system dependencies
@@ -223,9 +239,24 @@ brew install neovim git curl
 ```
 
 **For Windows:**
-# Install Chocolatey first, then:
+
+**Instaling choco**
+
+run this command in your powershell as admin:
+
 ```
-choco install neovim git curl
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+**Install Chocolatey first, then:**
+```
+# Via Chocolatey
+choco install neovim
+```
+
+```
+# Or via Winget
+winget install Neovim.Neovim
 ```
 
 ### Step 3: Start Neovim
@@ -261,6 +292,9 @@ npm install -g live-server
 ### Step 4: Install Language Servers
 
 After Neovim starts, run this single command:
+
+press : in your neovim and paste this command:
+
 ```
 :MasonInstall bashls clangd cssls html intelephense jdtls jsonls lua_ls netcoredbg nimls omnisharp pyright yamlls
 ```
@@ -314,4 +348,6 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 06/nov/2025*
+*Last updated: 12/nov/2025*
+
+- Show/hide hidden files with Ctrl+H
