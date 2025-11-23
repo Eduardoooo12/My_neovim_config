@@ -1,26 +1,26 @@
--- =============================================
--- 🚀 CONFIGURAÇÃO PRINCIPAL DO NVIM - CORRIGIDA
+-- ============================================-- =============================================
+-- Best neovim || by: Eduuu, the best
 -- =============================================
 
 -- =============================================
--- 1. 🛡️ CONFIGURAÇÕES DE PROTEÇÃO E INICIALIZAÇÃO
+-- 1. PROTECTION AND INITIALIZATION CONFIGURATIONS
 -- =============================================
 
 vim.g.loaded_perl_provider = 0
 
--- Previne erros durante a inicialização
+-- Prevent errors during initialization
 vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
     vim.defer_fn(function()
       local mason_ok, _ = pcall(require, "mason")
       if mason_ok then
-        --print("✅ Mason carregado com sucesso")
+        --print("Mason loaded successfully")
       end
     end, 1000)
   end
 })
 
--- Sistema de silenciamento de erros
+-- Error silencing system
 local function setup_error_handling()
   local original_notify = vim.notify
   local original_log_error = vim.lsp.log_error
@@ -48,7 +48,7 @@ local function setup_error_handling()
     return false
   end
 
-  -- Substitui as funções de logging
+  -- Replace logging functions
   vim.lsp.log_error = function(err, ...)
     if should_silence_message(err) then return end
     return original_log_error(err, ...)
@@ -77,18 +77,18 @@ local function setup_error_handling()
 end
 
 -- =============================================
--- 2. ⚙️ CONFIGURAÇÕES BÁSICAS DO VIM
+-- 2. BASIC VIM CONFIGURATIONS
 -- =============================================
 
 local function setup_basic_config()
   vim.g.mapleader = " "
   vim.g.maplocalleader = " "
 
-  -- Desabilitar netrw (usamos neo-tree)
+  -- Disable netrw (we use neo-tree)
   vim.g.loaded_netrw = 1
   vim.g.loaded_netrwPlugin = 1
 
-  -- Opções gerais otimizadas
+  -- Optimized general options
   local options = {
     number = true,
     relativenumber = false,
@@ -125,10 +125,10 @@ local function setup_basic_config()
 end
 
 -- =============================================
--- 3. 🖥️ FUNÇÕES UTILITÁRIAS
+-- 3. UTILITY FUNCTIONS
 -- =============================================
 
--- Sistema multiplataforma
+-- Cross-platform system
 local function get_os()
   if vim.fn.has('win32') == 1 then
     return 'windows'
@@ -143,7 +143,7 @@ local function get_os()
   end
 end
 
--- Função para matar processo multiplataforma
+-- Cross-platform process kill function
 function _G.kill_process(process_name)
   local os = get_os()
   
@@ -154,68 +154,68 @@ function _G.kill_process(process_name)
   end
 end
 
--- Sistema de terminal
+-- Terminal system
 local function create_close_button(buf)
   vim.keymap.set('n', '<leader>cx', function()
     if vim.api.nvim_buf_is_valid(buf) then
       vim.api.nvim_buf_delete(buf, { force = true })
-      print("🗑️ Terminal fechado")
+      print(" Terminal closed")
     end
-  end, { buffer = buf, desc = "Fechar este terminal" })
+  end, { buffer = buf, desc = "Close this terminal" })
 end
 
 -- =============================================
--- 4. 🔧 DIAGNÓSTICO E RESET DE SYNTAX HIGHLIGHTING
+-- 4. DIAGNOSTIC AND SYNTAX HIGHLIGHTING RESET
 -- =============================================
 
 function _G.diagnose_syntax_issues()
-  print("🔍 Diagnosticando problemas de syntax highlighting...")
+  print("Diagnosing syntax highlighting issues...")
   
-  -- Verifica Treesitter
+  -- Check Treesitter
   local ts_ok = pcall(require, "nvim-treesitter")
   if ts_ok then
     local parsers = require("nvim-treesitter.parsers").get_parser_configs()
     local current_ft = vim.bo.filetype
     local has_parser = parsers[current_ft] ~= nil
     
-    print("🌳 Treesitter: " .. (ts_ok and "✅ Carregado" or "❌ Falhou"))
-    print("📄 Filetype atual: " .. (current_ft or "Nenhum"))
-    print("🔤 Parser disponível: " .. (has_parser and "✅ Sim" or "❌ Não"))
+    print("Treesitter: " .. (ts_ok and "Loaded" or "Failed"))
+    print("Current filetype: " .. (current_ft or "None"))
+    print("Parser available: " .. (has_parser and "Yes" or "No"))
     
     if has_parser then
       local parser_loaded = require("nvim-treesitter.parsers").has_parser(current_ft)
-      print("📦 Parser carregado: " .. (parser_loaded and "✅ Sim" or "❌ Não"))
+      print("Parser loaded: " .. (parser_loaded and "Yes" or "No"))
     end
   else
-    print("❌ Treesitter não carregado")
+    print("Treesitter not loaded")
   end
   
-  -- Verifica LSP
+  -- Check LSP
   local clients = vim.lsp.get_active_clients()
-  print("\n🎯 LSPs Ativos (" .. #clients .. "):")
+  print("\nActive LSPs (" .. #clients .. "):")
   for _, client in ipairs(clients) do
-    print("  " .. client.name .. " - " .. (client.initialized and "🟢" or "🟡"))
+    print("  " .. client.name .. " - " .. (client.initialized and "Initialized" or "Not initialized"))
   end
   
-  -- Verifica cores do tema
-  print("\n🎨 Tema: " .. (vim.g.colors_name or "Não definido"))
+  -- Check theme colors
+  print("\nTheme: " .. (vim.g.colors_name or "Not defined"))
 end
 
 function _G.reset_syntax_highlighting()
-  print("🔄 Resetando syntax highlighting...")
+  print("Resetting syntax highlighting...")
   
-  -- Recarrega o arquivo atual
+  -- Reload current file
   vim.cmd("edit!")
   
-  -- Recarrega Treesitter se estiver disponível
+  -- Reload Treesitter if available
   local ts_ok = pcall(require, "nvim-treesitter")
   if ts_ok then
     vim.cmd("TSDisable highlight")
     vim.cmd("TSEnable highlight")
-    print("🌳 Treesitter recarregado")
+    print("Treesitter reloaded")
   end
   
-  -- Recarrega LSP
+  -- Reload LSP
   local clients = vim.lsp.get_active_clients()
   for _, client in ipairs(clients) do
     vim.lsp.stop_client(client.id)
@@ -223,20 +223,20 @@ function _G.reset_syntax_highlighting()
   
   vim.defer_fn(function()
     vim.cmd("LspRestart")
-    print("🎯 LSP reiniciado")
-    print("✅ Syntax highlighting resetado!")
+    print("LSP restarted")
+    print("Syntax highlighting reset!")
   end, 500)
 end
 
 -- =============================================
--- 5. 🎯 SISTEMA DE ATALHOS (KEYMAPS)
+-- 5. KEYBINDINGS SYSTEM
 -- =============================================
 
 local function setup_keymaps()
-  -- Seu atalho jk para ESC
+  -- Your jk to ESC shortcut
   vim.keymap.set("i", "jk", "<ESC>", { noremap = true, silent = true })
 
-  -- Atalhos profissionais de edição
+  -- Professional editing shortcuts
   local edit_keymaps = {
     { 'i', '<C-BS>', '<Esc>cvb>', { noremap = true, desc = 'Delete word backwards' } },
     { 'i', '<C-H>', '<C-w>', { noremap = true, desc = 'Delete word backwards' } },
@@ -252,35 +252,35 @@ local function setup_keymaps()
     vim.keymap.set(unpack(map))
   end
 
-  -- 🔧 GERAIS
-  vim.keymap.set("n", "<leader>dd", "<cmd>Alpha<CR>", { desc = "Abrir Dashboard" })
-  vim.keymap.set("n", "<leader>df", "<cmd>lua diagnose_and_fix_lsp()<CR>", { desc = "🔍 Diagnosticar e reparar LSP" })
+  -- GENERAL
+  vim.keymap.set("n", "<leader>dd", "<cmd>Alpha<CR>", { desc = "Open Dashboard" })
+  vim.keymap.set("n", "<leader>df", "<cmd>lua diagnose_and_fix_lsp()<CR>", { desc = "Diagnose and fix LSP" })
   vim.keymap.set('n', '<leader>as', '<cmd>lua toggle_auto_save()<CR>', { desc = 'Toggle Auto-save' })
-  vim.keymap.set("n", "<leader>cm", "<cmd>lua clear_messages()<CR>", { desc = "🧹 Limpar mensagens" })
-  vim.keymap.set("n", "<leader>ds", "<cmd>lua diagnose_syntax_issues()<CR>", { desc = "🔍 Diagnosticar syntax" })
-  vim.keymap.set("n", "<leader>rs", "<cmd>lua reset_syntax_highlighting()<CR>", { desc = "🔄 Resetar syntax" })
+  vim.keymap.set("n", "<leader>cm", "<cmd>lua clear_messages()<CR>", { desc = "Clear messages" })
+  vim.keymap.set("n", "<leader>ds", "<cmd>lua diagnose_syntax_issues()<CR>", { desc = "Diagnose syntax" })
+  vim.keymap.set("n", "<leader>rs", "<cmd>lua reset_syntax_highlighting()<CR>", { desc = "Reset syntax" })
 
-  -- 📁 WORKSPACE
-  vim.keymap.set("n", "<leader>wo", "<cmd>lua focus_project_folder()<CR>", { desc = "📁 Abrir seletor de pastas" })
-  vim.keymap.set("n", "<leader>wr", "<cmd>lua reset_folder_focus()<CR>", { desc = "🔄 Resetar foco da pasta" })
-  vim.keymap.set("n", "<leader>wp", "<cmd>lua show_focused_folder()<CR>", { desc = "📊 Mostrar pasta focada" })
-  vim.keymap.set("n", "<leader>wx", "<cmd>lua open_folder_in_explorer()<CR>", { desc = "📂 Abrir pasta no explorer" })
+  -- WORKSPACE
+  vim.keymap.set("n", "<leader>wo", "<cmd>lua focus_project_folder()<CR>", { desc = "Open folder selector" })
+  vim.keymap.set("n", "<leader>wr", "<cmd>lua reset_folder_focus()<CR>", { desc = "Reset folder focus" })
+  vim.keymap.set("n", "<leader>wp", "<cmd>lua show_focused_folder()<CR>", { desc = "Show focused folder" })
+  vim.keymap.set("n", "<leader>wx", "<cmd>lua open_folder_in_explorer()<CR>", { desc = "Open folder in explorer" })
 
-  -- 🖥️ TERMINAIS
+  -- TERMINALS
   vim.keymap.set("n", "<leader>th", function()
     vim.cmd("belowright split")
     vim.cmd("resize 12")
     vim.cmd("terminal")
     create_close_button(vim.api.nvim_get_current_buf())
     vim.cmd("startinsert")
-  end, { desc = "🖥️ Abrir terminal horizontal" })
+  end, { desc = "Open horizontal terminal" })
 
   vim.keymap.set("n", "<leader>tv", function()
     vim.cmd("vsplit")
     vim.cmd("terminal")
     create_close_button(vim.api.nvim_get_current_buf())
     vim.cmd("startinsert")
-  end, { desc = "🖥️ Abrir terminal vertical" })
+  end, { desc = "Open vertical terminal" })
 
   vim.keymap.set("n", "<leader>tt", function()
     local buf_list = vim.api.nvim_list_bufs()
@@ -307,7 +307,7 @@ local function setup_keymaps()
       create_close_button(vim.api.nvim_get_current_buf())
       vim.cmd("startinsert")
     end
-  end, { desc = "🔄 Toggle terminal" })
+  end, { desc = "Toggle terminal" })
 
   vim.keymap.set("n", "<leader>tc", function()
     local buf_list = vim.api.nvim_list_bufs()
@@ -321,22 +321,22 @@ local function setup_keymaps()
     end
     
     vim.g.python_terminal_buf = nil
-    print("🗑️ Fechados " .. closed_count .. " terminais")
-  end, { desc = "🗑️ Fechar todos os terminais" })
+    print("Closed " .. closed_count .. " terminals")
+  end, { desc = "Close all terminals" })
 
-  -- ☕ JAVA (SISTEMA DO CÓDIGO 2)
-  vim.keymap.set("n", "<leader>jc", "<cmd>lua smart_java_runner()<CR>", { desc = "🚀 Java com bibliotecas" })
-  vim.keymap.set("n", "<leader>jr", "<cmd>lua quick_java_runner()<CR>", { desc = "⚡ Java rápido (sem libs)" })
-  vim.keymap.set("n", "<leader>jp", "<cmd>lua show_java_classpath()<CR>", { desc = "🔍 Ver classpath" })
-  vim.keymap.set("n", "<leader>jt", "<cmd>lua java_template()<CR>", { desc = "📝 Template Java" })
+  -- JAVA (SYSTEM FROM CODE 2)
+  vim.keymap.set("n", "<leader>jc", "<cmd>lua smart_java_runner()<CR>", { desc = "Java with libraries" })
+  vim.keymap.set("n", "<leader>jr", "<cmd>lua quick_java_runner()<CR>", { desc = "Fast Java (no libs)" })
+  vim.keymap.set("n", "<leader>jp", "<cmd>lua show_java_classpath()<CR>", { desc = "View classpath" })
+  vim.keymap.set("n", "<leader>jt", "<cmd>lua java_template()<CR>", { desc = "Java template" })
 
-  -- 🐍 PYTHON
-  vim.keymap.set("n", "<leader>pr", "<cmd>lua run_python_quick()<CR>", { desc = "🚀 Executar Python rápido" })
-  vim.keymap.set("n", "<leader>pc", "<cmd>lua close_python_terminal()<CR>", { desc = "❌ Fechar terminal Python" })
-  vim.keymap.set("n", "<leader>pk", "<cmd>lua run_python_keep()<CR>", { desc = "🐍 Executar e manter terminal" })
-  vim.keymap.set("n", "<leader>pt", "<cmd>lua python_template()<CR>", { desc = "📝 Template Python" })
+  -- PYTHON
+  vim.keymap.set("n", "<leader>pr", "<cmd>lua run_python_quick()<CR>", { desc = "Run Python fast" })
+  vim.keymap.set("n", "<leader>pc", "<cmd>lua close_python_terminal()<CR>", { desc = "Close Python terminal" })
+  vim.keymap.set("n", "<leader>pk", "<cmd>lua run_python_keep()<CR>", { desc = "Run and keep terminal" })
+  vim.keymap.set("n", "<leader>pt", "<cmd>lua python_template()<CR>", { desc = "Python template" })
 
-  -- 🅒 C/C++
+  -- C/C++
   vim.keymap.set("n", "<leader>cc", function()
     local current_file = vim.fn.expand("%:p")
     if string.match(current_file, "%.c$") then
@@ -344,47 +344,47 @@ local function setup_keymaps()
     elseif string.match(current_file, "%.cpp$") or string.match(current_file, "%.cc$") then
       _G.compile_cpp()
     else
-      print("❌ Arquivo não é C/C++!")
+      print("File is not C/C++!")
     end
-  end, { desc = "🔨 Compilar C/C++" })
+  end, { desc = "Compile C/C++" })
 
-  vim.keymap.set("n", "<leader>cr", "<cmd>lua run_executable()<CR>", { desc = "🚀 Executar C/C++" })
-  vim.keymap.set("n", "<leader>cd", "<cmd>lua debug_with_gdb()<CR>", { desc = "🐛 Debug com GDB" })
-  vim.keymap.set("n", "<leader>cn", "<cmd>lua create_c_project()<CR>", { desc = "🆕 Criar projeto C" })
-  vim.keymap.set("n", "<leader>cN", "<cmd>lua create_cpp_project()<CR>", { desc = "🆕 Criar projeto C++" })
-  vim.keymap.set("n", "<leader>ct", "<cmd>lua c_template()<CR>", { desc = "📝 Template C" })
-  vim.keymap.set("n", "<leader>cT", "<cmd>lua cpp_template()<CR>", { desc = "📝 Template C++" })
+  vim.keymap.set("n", "<leader>cr", "<cmd>lua run_executable()<CR>", { desc = "Run C/C++" })
+  vim.keymap.set("n", "<leader>cd", "<cmd>lua debug_with_gdb()<CR>", { desc = "Debug with GDB" })
+  vim.keymap.set("n", "<leader>cn", "<cmd>lua create_c_project()<CR>", { desc = "Create C project" })
+  vim.keymap.set("n", "<leader>cN", "<cmd>lua create_cpp_project()<CR>", { desc = "Create C++ project" })
+  vim.keymap.set("n", "<leader>ct", "<cmd>lua c_template()<CR>", { desc = "C template" })
+  vim.keymap.set("n", "<leader>cT", "<cmd>lua cpp_template()<CR>", { desc = "C++ template" })
 
-  -- ⚡ C#
-  vim.keymap.set("n", "<leader>#c", "<cmd>lua compile_csharp()<CR>", { desc = "🔨 Compilar C#" })
-  vim.keymap.set("n", "<leader>#r", "<cmd>lua run_csharp()<CR>", { desc = "🚀 Executar C#" })
-  vim.keymap.set("n", "<leader>#d", "<cmd>lua debug_csharp()<CR>", { desc = "🐛 Debug C#" })
-  vim.keymap.set("n", "<leader>#n", "<cmd>lua create_csharp_project()<CR>", { desc = "🆕 Criar projeto C#" })
-  vim.keymap.set("n", "<leader>#t", "<cmd>lua csharp_template()<CR>", { desc = "📝 Template C#" })
+  -- C#
+  vim.keymap.set("n", "<leader>#c", "<cmd>lua compile_csharp()<CR>", { desc = "Compile C#" })
+  vim.keymap.set("n", "<leader>#r", "<cmd>lua run_csharp()<CR>", { desc = "Run C#" })
+  vim.keymap.set("n", "<leader>#d", "<cmd>lua debug_csharp()<CR>", { desc = "Debug C#" })
+  vim.keymap.set("n", "<leader>#n", "<cmd>lua create_csharp_project()<CR>", { desc = "Create C# project" })
+  vim.keymap.set("n", "<leader>#t", "<cmd>lua csharp_template()<CR>", { desc = "C# template" })
 
-  -- 🐍 NIM
-  vim.keymap.set("n", "<leader>nc", "<cmd>lua compile_nim()<CR>", { desc = "🔨 Compilar Nim" })
-  vim.keymap.set("n", "<leader>nr", "<cmd>lua run_nim()<CR>", { desc = "🚀 Executar Nim" })
-  vim.keymap.set("n", "<leader>ns", "<cmd>lua run_nim_script()<CR>", { desc = "🐍 Executar script Nim" })
-  vim.keymap.set("n", "<leader>nd", "<cmd>lua compile_and_run_nim()<CR>", { desc = "⚡ Compilar+Executar Nim" })
-  vim.keymap.set("n", "<leader>nn", "<cmd>lua create_nim_project()<CR>", { desc = "🆕 Criar projeto Nim" })
-  vim.keymap.set("n", "<leader>nt", "<cmd>lua nim_template()<CR>", { desc = "📝 Template Nim" })
+  -- NIM
+  vim.keymap.set("n", "<leader>nc", "<cmd>lua compile_nim()<CR>", { desc = "Compile Nim" })
+  vim.keymap.set("n", "<leader>nr", "<cmd>lua run_nim()<CR>", { desc = "Run Nim" })
+  vim.keymap.set("n", "<leader>ns", "<cmd>lua run_nim_script()<CR>", { desc = "Run Nim script" })
+  vim.keymap.set("n", "<leader>nd", "<cmd>lua compile_and_run_nim()<CR>", { desc = "Compile+Run Nim" })
+  vim.keymap.set("n", "<leader>nn", "<cmd>lua create_nim_project()<CR>", { desc = "Create Nim project" })
+  vim.keymap.set("n", "<leader>nt", "<cmd>lua nim_template()<CR>", { desc = "Nim template" })
 
-    -- 🐘 PHP
-  vim.keymap.set("n", "<leader>phr", "<cmd>lua run_php()<CR>", { desc = "🚀 Executar PHP no terminal" })
-  vim.keymap.set("n", "<leader>phs", "<cmd>lua run_php_server()<CR>", { desc = "🌐 Servidor PHP Corrigido" })
-  vim.keymap.set("n", "<leader>phS", "<cmd>lua run_php_simple()<CR>", { desc = "🚀 PHP Ultra-Simples" })
-  vim.keymap.set("n", "<leader>phq", "<cmd>lua stop_php_server()<CR>", { desc = "🛑 Parar servidor PHP" })
-  vim.keymap.set("n", "<leader>phd", "<cmd>lua debug_php_system()<CR>", { desc = "🔍 Debug sistema PHP" })
-  vim.keymap.set("n", "<leader>pht", "<cmd>lua php_template()<CR>", { desc = "📝 Template PHP" })
-  vim.keymap.set("n", "<leader>phn", "<cmd>lua create_php_project()<CR>", { desc = "🆕 Criar projeto PHP" })
+    -- PHP
+  vim.keymap.set("n", "<leader>phr", "<cmd>lua run_php()<CR>", { desc = "Run PHP in terminal" })
+  vim.keymap.set("n", "<leader>phs", "<cmd>lua run_php_server()<CR>", { desc = "PHP Server Fixed" })
+  vim.keymap.set("n", "<leader>phS", "<cmd>lua run_php_simple()<CR>", { desc = "PHP Ultra-Simple" })
+  vim.keymap.set("n", "<leader>phq", "<cmd>lua stop_php_server()<CR>", { desc = "Stop PHP server" })
+  vim.keymap.set("n", "<leader>phd", "<cmd>lua debug_php_system()<CR>", { desc = "Debug PHP system" })
+  vim.keymap.set("n", "<leader>pht", "<cmd>lua php_template()<CR>", { desc = "PHP template" })
+  vim.keymap.set("n", "<leader>phn", "<cmd>lua create_php_project()<CR>", { desc = "Create PHP project" })
 
-  -- 🌐 LIVE SERVER
+  -- LIVE SERVER
   vim.keymap.set("n", "<leader>lss", function()
     local current_dir = vim.fn.expand("%:p:h")
     local current_file = vim.fn.expand("%:t")
     
-    print("🚀 Iniciando Live Server SEGURO...")
+    print("Starting SAFE Live Server...")
     
     _G.kill_process("live-server")
     
@@ -405,18 +405,18 @@ local function setup_keymaps()
           if data then
             for _, line in ipairs(data) do
               if line and line ~= "" then
-                print("🌐 " .. line)
+                print("Live Server: " .. line)
               end
             end
           end
         end,
         on_exit = function()
-          print("🛑 Live Server parado")
+          print("Live Server stopped")
         end
       })
       
       if job_id <= 0 then
-        print("❌ Erro ao iniciar Live Server")
+        print("Error starting Live Server")
         return
       end
       
@@ -426,34 +426,34 @@ local function setup_keymaps()
         })
       end, 2000)
       
-      print("✅ Live Server SEGURO iniciado!")
-      print("📂 Pasta: " .. current_dir)
-      print("🌐 URL: http://localhost:5500")
-      print("💡 Use <leader>lsq para parar o servidor")
+      print("SAFE Live Server started!")
+      print("Folder: " .. current_dir)
+      print("URL: http://localhost:5500")
+      print("Use <leader>lsq to stop the server")
       
     end, 100)
-  end, { desc = "Iniciar Live Server seguro" })
+  end, { desc = "Start safe Live Server" })
 
   vim.keymap.set("n", "<leader>lsq", function()
     _G.kill_process("live-server")
     if vim.v.shell_error == 0 then
-      print("🛑 Live Server parado com sucesso!")
+      print("Live Server stopped successfully!")
     else
-      print("ℹ️ Nenhum Live Server estava rodando")
+      print("No Live Server was running")
     end
-  end, { desc = "Parar Live Server" })
+  end, { desc = "Stop Live Server" })
 
   vim.keymap.set("n", "<leader>lsl", function()
     local result = vim.fn.system("pgrep -f live-server")
     if result ~= "" then
-      print("✅ Live Server RODANDO - http://localhost:5500")
-      print("📊 PIDs: " .. result)
+      print("Live Server RUNNING - http://localhost:5500")
+      print("PIDs: " .. result)
     else
-      print("❌ Live Server PARADO - Use <leader>lss para iniciar")
+      print("Live Server STOPPED - Use <leader>lss to start")
     end
-  end, { desc = "Ver status Live Server" })
+  end, { desc = "Check Live Server status" })
 
-  -- 🎯 TECLAS DE FUNÇÃO
+  -- FUNCTION KEYS
   vim.keymap.set("n", "<F5>", function()
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -461,21 +461,21 @@ local function setup_keymaps()
     
     local term_buf = vim.api.nvim_get_current_buf()
     
-    vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { buffer = term_buf, desc = "Sair do modo terminal" })
-    vim.keymap.set('t', 'jk', '<C-\\><C-n>', { buffer = term_buf, desc = "Sair do modo terminal" })
-    vim.keymap.set('t', '<C-q>', '<C-\\><C-n>:q<CR>', { buffer = term_buf, desc = "Fechar terminal" })
+    vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { buffer = term_buf, desc = "Exit terminal mode" })
+    vim.keymap.set('t', 'jk', '<C-\\><C-n>', { buffer = term_buf, desc = "Exit terminal mode" })
+    vim.keymap.set('t', '<C-q>', '<C-\\><C-n>:q<CR>', { buffer = term_buf, desc = "Close terminal" })
     
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
       end
-    end, { buffer = term_buf, desc = "Fechar este terminal" })
+    end, { buffer = term_buf, desc = "Close this terminal" })
     
     vim.cmd("startinsert")
-    print("🖥️ Terminal limpo aberto (F5)")
-  end, { desc = "Abrir terminal limpo" })
+    print("Clean terminal opened (F5)")
+  end, { desc = "Open clean terminal" })
 
-  vim.keymap.set("n", "<F6>", "<cmd>lua run_python_quick()<CR>", { desc = "🚀 Executar Python" })
+  vim.keymap.set("n", "<F6>", "<cmd>lua run_python_quick()<CR>", { desc = "Run Python" })
 
   vim.keymap.set("n", "<F7>", function()
     local current_file = vim.fn.expand("%:p")
@@ -485,34 +485,34 @@ local function setup_keymaps()
     elseif string.match(current_file, "%.cpp$") or string.match(current_file, "%.cc$") then
       _G.compile_and_run_cpp()
     else
-      print("❌ Arquivo não é C/C++! Use F5 para terminal geral.")
+      print("File is not C/C++! Use F5 for general terminal.")
     end
-  end, { desc = "⚡ Compilar + Executar C/C++" })
+  end, { desc = "Compile + Run C/C++" })
 
-  -- 🚀 F8 AGORA EXECUTA JAVA COM BIBLIOTECAS (DO CÓDIGO 2)
-  vim.keymap.set("n", "<F8>", "<cmd>lua smart_java_runner()<CR>", { desc = "🚀 Executar Java (com libs)" })
+  -- F8 NOW RUNS JAVA WITH LIBRARIES (FROM CODE 2)
+  vim.keymap.set("n", "<F8>", "<cmd>lua smart_java_runner()<CR>", { desc = "Run Java (with libs)" })
 
   vim.keymap.set("n", "<F9>", function()
     local current_file = vim.fn.expand("%:p")
     if string.match(current_file, "%.nim$") then
       _G.compile_and_run_nim()
     else
-      print("❌ Arquivo não é Nim! Use F5 para terminal geral.")
+      print("File is not Nim! Use F5 for general terminal.")
     end
-  end, { desc = "⚡ Compilar+Executar Nim" })
+  end, { desc = "Compile+Run Nim" })
 
   vim.keymap.set("n", "<F10>", function()
     local current_file = vim.fn.expand("%:p")
     if string.match(current_file, "%.cs$") then
       _G.compile_and_run_csharp()
     else
-      print("❌ Arquivo não é C#! Use F5 para terminal geral.")
+      print("File is not C#! Use F5 for general terminal.")
     end
-  end, { desc = "⚡ Compilar+Executar C#" })
+  end, { desc = "Compile+Run C#" })
 end
 
 -- =============================================
--- 6. 💾 SISTEMA DE AUTO-SAVE
+-- 6. AUTO-SAVE SYSTEM
 -- =============================================
 
 local function setup_auto_save()
@@ -523,12 +523,12 @@ local function setup_auto_save()
       local filename = vim.fn.expand('%:t')
       local buftype = vim.bo.buftype
       
-      -- Não salva se for um buffer especial
+      -- Don't save if it's a special buffer
       if buftype ~= "" and buftype ~= "acwrite" then
         return
       end
       
-      -- Não salva buffers de prompt ou temporários
+      -- Don't save prompt or temporary buffers
       if string.match(filename, "java_import_prompt") or 
         vim.bo.buftype == "prompt" or 
         vim.bo.buftype == "nofile" or
@@ -538,7 +538,7 @@ local function setup_auto_save()
       
       if filename ~= "" then
         vim.cmd('silent write')
-        print('💾 Auto-save: ' .. filename)
+        print('Auto-save: ' .. filename)
       end
     end
   end
@@ -553,15 +553,15 @@ local function setup_auto_save()
   function _G.toggle_auto_save()
     vim.g.auto_save_active = not vim.g.auto_save_active
     if vim.g.auto_save_active then
-      print('💾 Auto-save ATIVADO')
+      print('Auto-save ENABLED')
     else
-      print('❌ Auto-save DESATIVADO')
+      print('Auto-save DISABLED')
     end
   end
 end
 
 -- =============================================
--- 7. 🗂️ SISTEMA DE WORKSPACE
+-- 7. WORKSPACE SYSTEM
 -- =============================================
 
 local function setup_workspace()
@@ -572,13 +572,13 @@ local function setup_workspace()
     local command
     
     if os == 'linux' then
-      command = "zenity --file-selection --directory --title='Selecione uma pasta para focar'"
+      command = "zenity --file-selection --directory --title='Select a folder to focus'"
     elseif os == 'macos' then
-      command = "osascript -e 'tell app \"Finder\" to choose folder with prompt \"Selecione uma pasta para focar\"'"
+      command = "osascript -e 'tell app \"Finder\" to choose folder with prompt \"Select a folder to focus\"'"
     elseif os == 'windows' then
-      command = "powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; $folder = New-Object System.Windows.Forms.FolderBrowserDialog; $folder.Description = 'Selecione uma pasta para focar'; if($folder.ShowDialog() -eq 'OK') { Write-Output $folder.SelectedPath }\""
+      command = "powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; $folder = New-Object System.Windows.Forms.FolderBrowserDialog; $folder.Description = 'Select a folder to focus'; if($folder.ShowDialog() -eq 'OK') { Write-Output $folder.SelectedPath }\""
     else
-      print("❌ Sistema operacional não suportado")
+      print("Operating system not supported")
       return
     end
     
@@ -595,13 +595,13 @@ local function setup_workspace()
         vim.cmd("cd " .. vim.fn.fnameescape(folder_path))
         vim.cmd("Neotree reveal filesystem " .. vim.fn.fnameescape(folder_path))
         
-        print("📁 Pasta focada: " .. folder_path)
-        print("💡 Use <leader>wr para resetar o foco")
+        print("Focused folder: " .. folder_path)
+        print("Use <leader>wr to reset focus")
       else
-        print("❌ Nenhuma pasta selecionada")
+        print("No folder selected")
       end
     else
-      print("❌ Erro ao abrir seletor de pastas")
+      print("Error opening folder selector")
     end
   end
 
@@ -610,16 +610,16 @@ local function setup_workspace()
     local current_dir = vim.fn.getcwd()
     vim.cmd("Neotree close")
     vim.cmd("Neotree reveal")
-    print("🔄 Foco resetado para: " .. current_dir)
+    print("Focus reset to: " .. current_dir)
   end
 
   function _G.show_focused_folder()
     if vim.g.focused_folder then
       local folder_name = vim.fn.fnamemodify(vim.g.focused_folder, ":t")
-      print("🎯 Pasta focada: " .. vim.g.focused_folder)
-      print("   📂 Nome: " .. folder_name)
+      print("Focused folder: " .. vim.g.focused_folder)
+      print("   Name: " .. folder_name)
     else
-      print("📁 Usando diretório atual: " .. vim.fn.getcwd())
+      print("Using current directory: " .. vim.fn.getcwd())
     end
   end
 
@@ -635,12 +635,12 @@ local function setup_workspace()
     elseif os == 'windows' then
       command = {"explorer", folder_to_open}
     else
-      print("❌ Sistema operacional não suportado")
+      print("Operating system not supported")
       return
     end
     
     vim.fn.jobstart(command, { detach = true })
-    print("📂 Abrindo pasta no gerenciador de arquivos: " .. folder_to_open)
+    print("Opening folder in file manager: " .. folder_to_open)
   end
 
   vim.api.nvim_create_autocmd("FileType", {
@@ -654,7 +654,7 @@ local function setup_workspace()
 end
 
 -- =============================================
--- 8. 🔧 SISTEMA DE BUFFERS E JANELAS
+-- 8. BUFFER AND WINDOW SYSTEM
 -- =============================================
 
 local function setup_buffer_system()
@@ -707,7 +707,7 @@ local function setup_buffer_system()
   vim.keymap.set("t", "<C-w>", "<C-\\><C-n><Cmd>lua safe_buffer_close()<CR>", { noremap = true, silent = true })
   vim.keymap.set("i", "<C-w>", "<Esc><Cmd>lua safe_buffer_close()<CR>", { noremap = true, silent = true })
 
-  -- Sistema anti-inversão de layout
+  -- Anti-layout inversion system
   vim.api.nvim_create_autocmd("BufWinLeave", {
     callback = function(args)
       local buf = args.buf
@@ -748,10 +748,10 @@ local function setup_buffer_system()
 end
 
 -- =============================================
--- 9. 💻 SISTEMAS DE LINGUAGEM
+-- 9. LANGUAGE SYSTEMS
 -- =============================================
 
--- Sistema Python
+-- Python System
 local function setup_python_system()
   vim.opt.shell = "zsh"
   vim.g.python_terminal_buf = nil
@@ -769,10 +769,10 @@ local function setup_python_system()
         vim.g.python_terminal_buf = buf
       end
       
-      vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { buffer = buf, desc = "Sair do modo terminal" })
-      vim.keymap.set('t', 'jk', '<C-\\><C-n>', { buffer = buf, desc = "Sair do modo terminal" })
-      vim.keymap.set('t', '<C-q>', '<C-\\><C-n>:q<CR>', { buffer = buf, desc = "Fechar terminal" })
-      vim.keymap.set('t', '<C-w>', '<C-\\><C-n><C-w>', { buffer = buf, desc = "Navegar entre janelas" })
+      vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { buffer = buf, desc = "Exit terminal mode" })
+      vim.keymap.set('t', 'jk', '<C-\\><C-n>', { buffer = buf, desc = "Exit terminal mode" })
+      vim.keymap.set('t', '<C-q>', '<C-\\><C-n>:q<CR>', { buffer = buf, desc = "Close terminal" })
+      vim.keymap.set('t', '<C-w>', '<C-\\><C-n><C-w>', { buffer = buf, desc = "Navigate between windows" })
     end
   })
 
@@ -780,12 +780,12 @@ local function setup_python_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.py$") then
-      print("❌ Este não é um arquivo Python!")
+      print("This is not a Python file!")
       return
     end
     
@@ -804,16 +804,16 @@ local function setup_python_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("🚀 Executando: " .. vim.fn.fnamemodify(current_file, ":t"))
+    print("Running: " .. vim.fn.fnamemodify(current_file, ":t"))
   end
 
   function _G.close_python_terminal()
     if vim.g.python_terminal_buf and vim.api.nvim_buf_is_valid(vim.g.python_terminal_buf) then
       vim.api.nvim_buf_delete(vim.g.python_terminal_buf, { force = true })
       vim.g.python_terminal_buf = nil
-      print("🗑️ Terminal Python fechado")
+      print("Python terminal closed")
     else
-      print("ℹ️ Nenhum terminal Python aberto")
+      print("No Python terminal open")
     end
   end
 
@@ -821,7 +821,7 @@ local function setup_python_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
@@ -835,7 +835,7 @@ local function setup_python_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("🐍 Terminal Python aberto: " .. vim.fn.fnamemodify(current_file, ":t"))
+    print("Python terminal opened: " .. vim.fn.fnamemodify(current_file, ":t"))
   end
 
   vim.keymap.set("v", "<leader>ps", function()
@@ -856,13 +856,13 @@ local function setup_python_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("🧪 Executando código selecionado...")
-  end, { desc = "🧪 Executar código selecionado" })
+    print("Running selected code...")
+  end, { desc = "Run selected code" })
 end
 
--- Sistema C/C++
+-- C/C++ System
 local function setup_c_cpp_system()
-  -- Configurações de indentação para C/C++
+  -- Indentation settings for C/C++
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {"c", "cpp"},
     callback = function()
@@ -873,19 +873,19 @@ local function setup_c_cpp_system()
     end
   })
 
-  -- Compilar C
+  -- Compile C
   function _G.compile_c()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.c$") then
-      print("❌ Este não é um arquivo C!")
+      print("This is not a C file!")
       return
     end
     
@@ -895,24 +895,24 @@ local function setup_c_cpp_system()
       vim.fn.shellescape(output_name)
     )
     
-    print("🔨 Compilando " .. vim.fn.expand("%:t") .. "...")
+    print("Compiling " .. vim.fn.expand("%:t") .. "...")
     vim.cmd("!" .. compile_cmd)
-    print("✅ Executável criado: " .. output_name)
+    print("Executable created: " .. output_name)
   end
 
-  -- Compilar C++
+  -- Compile C++
   function _G.compile_cpp()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.cpp$") and not string.match(current_file, "%.cc$") then
-      print("❌ Este não é um arquivo C++!")
+      print("This is not a C++ file!")
       return
     end
     
@@ -922,12 +922,12 @@ local function setup_c_cpp_system()
       vim.fn.shellescape(output_name)
     )
     
-    print("🔨 Compilando " .. vim.fn.expand("%:t") .. "...")
+    print("Compiling " .. vim.fn.expand("%:t") .. "...")
     vim.cmd("!" .. compile_cmd)
-    print("✅ Executável criado: " .. output_name)
+    print("Executable created: " .. output_name)
   end
 
-  -- Executar programa C/C++
+  -- Run C/C++ program
   function _G.run_executable()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
@@ -936,11 +936,11 @@ local function setup_c_cpp_system()
     local executable_path = file_dir .. "/" .. output_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("❌ Executável não encontrado! Compile primeiro.")
+      print("Executable not found! Compile first.")
       return
     end
     
-    print("🚀 Executando: " .. output_name)
+    print("Running: " .. output_name)
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -952,12 +952,12 @@ local function setup_c_cpp_system()
     vim.cmd("startinsert")
   end
 
-  -- Compilar e executar em uma etapa
+  -- Compile and run in one step
   function _G.compile_and_run_c()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.c$") then
-      print("❌ Este não é um arquivo C!")
+      print("This is not a C file!")
       return
     end
     
@@ -972,7 +972,7 @@ local function setup_c_cpp_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.cpp$") and not string.match(current_file, "%.cc$") then
-      print("❌ Este não é um arquivo C++!")
+      print("This is not a C++ file!")
       return
     end
     
@@ -983,7 +983,7 @@ local function setup_c_cpp_system()
     end, 500)
   end
 
-  -- Debug com GDB
+  -- Debug with GDB
   function _G.debug_with_gdb()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
@@ -992,11 +992,11 @@ local function setup_c_cpp_system()
     local executable_path = file_dir .. "/" .. output_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("❌ Executável não encontrado! Compile primeiro com flags de debug.")
+      print("Executable not found! Compile first with debug flags.")
       return
     end
     
-    print("🐛 Iniciando debug com GDB...")
+    print("Starting debug with GDB...")
     
     vim.cmd("belowright split")
     vim.cmd("resize 15")
@@ -1008,9 +1008,9 @@ local function setup_c_cpp_system()
     vim.cmd("startinsert")
   end
 
-  -- Criar projeto C básico
+  -- Create basic C project
   function _G.create_c_project()
-    local project_name = vim.fn.input("Nome do projeto C: ")
+    local project_name = vim.fn.input("C project name: ")
     if project_name == "" then return end
     
     vim.fn.mkdir(project_name, "p")
@@ -1018,21 +1018,21 @@ local function setup_c_cpp_system()
     vim.fn.mkdir(project_name .. "/include", "p")
     vim.fn.mkdir(project_name .. "/build", "p")
     
-    -- Cria arquivo main.c
+    -- Create main.c file
     local main_file = io.open(project_name .. "/src/main.c", "w")
     if main_file then
       main_file:write([[
 #include <stdio.h>
 
 int main() {
-    printf("Hello, World!\\n");
+    printf("Hello, World!\n");
     return 0;
 }
 ]])
       main_file:close()
     end
     
-    -- Cria Makefile básico
+    -- Create basic Makefile
     local makefile = io.open(project_name .. "/Makefile", "w")
     if makefile then
       makefile:write(string.format([[
@@ -1066,12 +1066,12 @@ debug: all
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.c")
     
-    print("✅ Projeto C criado: " .. project_name)
+    print("C project created: " .. project_name)
   end
 
-  -- Criar projeto C++ básico
+  -- Create basic C++ project
   function _G.create_cpp_project()
-    local project_name = vim.fn.input("Nome do projeto C++: ")
+    local project_name = vim.fn.input("C++ project name: ")
     if project_name == "" then return end
     
     vim.fn.mkdir(project_name, "p")
@@ -1079,7 +1079,7 @@ debug: all
     vim.fn.mkdir(project_name .. "/include", "p")
     vim.fn.mkdir(project_name .. "/build", "p")
     
-    -- Cria arquivo main.cpp
+    -- Create main.cpp file
     local main_file = io.open(project_name .. "/src/main.cpp", "w")
     if main_file then
       main_file:write([[
@@ -1093,7 +1093,7 @@ int main() {
       main_file:close()
     end
     
-    -- Cria Makefile básico
+    -- Create basic Makefile
     local makefile = io.open(project_name .. "/Makefile", "w")
     if makefile then
       makefile:write(string.format([[
@@ -1127,17 +1127,17 @@ debug: all
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.cpp")
     
-    print("✅ Projeto C++ criado: " .. project_name)
+    print("C++ project created: " .. project_name)
   end
 
-  -- Template rápido para C
+  -- Quick template for C
   function _G.c_template()
     local template = [[
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-    printf("Hello, World!\\n");
+    printf("Hello, World!\n");
     
     return 0;
 }
@@ -1145,7 +1145,7 @@ int main(int argc, char *argv[]) {
     vim.api.nvim_put(vim.split(template, "\n"), "l", true, true)
   end
 
-  -- Template rápido para C++
+  -- Quick template for C++
   function _G.cpp_template()
     local template = [[
 #include <iostream>
@@ -1164,15 +1164,15 @@ int main(int argc, char *argv[]) {
   end
 end
 
--- 9.3 ☕ SISTEMA JAVA SIMPLIFICADO (DO CÓDIGO 2)
+-- 9.3 SIMPLIFIED JAVA SYSTEM (FROM CODE 2)
 local function setup_java_system()
-  vim.g.java_projects_path = os.getenv("HOME") .. "/Área de Trabalho/tudo/projetos/Java"
+  vim.g.java_projects_path = os.getenv("HOME") .. "/Desktop/tudo/projects/Java"
 
-  -- 🔍 DETECTAR BIBLIOTECAS JAVA DE FORMA SIMPLES
+  -- DETECT JAVA LIBRARIES SIMPLY
   function _G.detect_java_libraries()
     local current_dir = vim.fn.expand("%:p:h")
     local lib_dirs = {
-      os.getenv("HOME") .. "/bibliotecas-java",
+      os.getenv("HOME") .. "/java-libraries",
       current_dir .. "/lib",
       current_dir .. "/libs",
       current_dir,
@@ -1192,7 +1192,7 @@ local function setup_java_system()
     return found_jars
   end
 
-  -- 🚀 EXECUTOR JAVA PRINCIPAL (COM LIBS) - AGORA NO F8
+  -- MAIN JAVA RUNNER (WITH LIBS) - NOW ON F8
   function _G.smart_java_runner()
     local current_file = vim.fn.expand("%:p")
     local file_dir = vim.fn.expand("%:p:h")
@@ -1200,11 +1200,11 @@ local function setup_java_system()
     local class_name = vim.fn.expand("%:t:r")
     
     if not current_file:match("%.java$") then
-      print("❌ Não é um arquivo Java!")
+      print("This is not a Java file!")
       return
     end
     
-    -- Detectar bibliotecas
+    -- Detect libraries
     local libraries = _G.detect_java_libraries()
     local classpath_parts = {"."}
     
@@ -1215,13 +1215,13 @@ local function setup_java_system()
     local classpath = table.concat(classpath_parts, ":")
     
     if #libraries > 0 then
-      print("📚 " .. #libraries .. " biblioteca(s) detectada(s)")
+      print(" " .. #libraries .. " library(s) detected")
     else
-      print("ℹ️ Nenhuma biblioteca adicional detectada")
+      print(" No additional libraries detected")
     end
     
-    -- Compilar
-    print("🔨 Compilando " .. file_name .. "...")
+    -- Compile
+    print("Compiling " .. file_name .. "...")
     
     local compile_cmd = string.format(
       "cd '%s' && javac -cp '%s' '%s'",
@@ -1233,14 +1233,14 @@ local function setup_java_system()
     local compile_result = vim.fn.system(compile_cmd)
     
     if compile_result ~= "" then
-      print("❌ Erro de compilação:")
+      print("Compilation error:")
       print(compile_result)
       return false
     end
     
-    -- Executar
-    print("✅ Compilação bem-sucedida!")
-    print("🚀 Executando " .. class_name .. "...")
+    -- Execute
+    print("Compilation successful!")
+    print("Running " .. class_name .. "...")
     
     local run_cmd = string.format(
       "cd '%s' && java -cp '%s' %s",
@@ -1249,26 +1249,26 @@ local function setup_java_system()
       class_name
     )
     
-    -- Abrir terminal para execução
+    -- Open terminal for execution
     vim.cmd("belowright split")
     vim.cmd("resize 12")
     vim.cmd("terminal " .. run_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
     
-    -- Botão para fechar terminal
+    -- Button to close terminal
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
-        print("🗑️ Terminal fechado")
+        print("Terminal closed")
       end
-    end, { buffer = term_buf, desc = "Fechar terminal" })
+    end, { buffer = term_buf, desc = "Close terminal" })
     
     vim.cmd("startinsert")
     return true
   end
 
-  -- ⚡ EXECUTOR JAVA RÁPIDO (SEM LIBS)
+  -- FAST JAVA RUNNER (NO LIBS)
   function _G.quick_java_runner()
     local current_file = vim.fn.expand("%:p")
     local file_dir = vim.fn.expand("%:p:h")
@@ -1276,17 +1276,17 @@ local function setup_java_system()
     local class_name = vim.fn.expand("%:t:r")
     
     if not current_file:match("%.java$") then
-      print("❌ Não é um arquivo Java!")
+      print("This is not a Java file!")
       return
     end
     
-    print("🔨 Compilando " .. file_name .. "...")
+    print("Compiling " .. file_name .. "...")
     
     local compile_cmd = string.format("cd '%s' && javac '%s'", file_dir, file_name)
     local compile_result = vim.fn.system(compile_cmd)
     
     if compile_result ~= "" then
-      print("❌ Erro de compilação:")
+      print("Compilation error:")
       print(compile_result)
       return
     end
@@ -1299,34 +1299,34 @@ local function setup_java_system()
     
     local term_buf = vim.api.nvim_get_current_buf()
     
-    -- Botão para fechar terminal
+    -- Button to close terminal
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
-        print("🗑️ Terminal fechado")
+        print("Terminal closed")
       end
-    end, { buffer = term_buf, desc = "Fechar terminal" })
+    end, { buffer = term_buf, desc = "Close terminal" })
     
     vim.cmd("startinsert")
-    print("☕ Java executado: " .. class_name)
+    print("Java executed: " .. class_name)
   end
 
-  -- 🔍 VER CLASSPATH (OPCIONAL)
+  -- VIEW CLASSPATH (OPTIONAL)
   function _G.show_java_classpath()
     local libraries = _G.detect_java_libraries()
     
     if #libraries > 0 then
-      print("📚 JARs no classpath (" .. #libraries .. " encontrados):")
+      print(" JARs in classpath (" .. #libraries .. " found):")
       for _, jar in ipairs(libraries) do
         local jar_name = vim.fn.fnamemodify(jar, ":t")
-        print("   📦 " .. jar_name)
+        print("   " .. jar_name)
       end
     else
-      print("ℹ️ Nenhum JAR adicional encontrado")
+      print(" No additional JARs found")
     end
   end
 
-  -- 📝 TEMPLATE JAVA SIMPLES
+  -- SIMPLE JAVA TEMPLATE
   function _G.java_template()
     local template = [[
 public class Main {
@@ -1339,7 +1339,7 @@ public class Main {
   end
 end
 
--- Sistema Nim
+-- Nim System
 local function setup_nim_system()
   function _G.compile_nim()
     local current_file = vim.fn.expand("%:p")
@@ -1347,12 +1347,12 @@ local function setup_nim_system()
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.nim$") then
-      print("❌ Este não é um arquivo Nim!")
+      print("This is not a Nim file!")
       return
     end
     
@@ -1361,9 +1361,9 @@ local function setup_nim_system()
       vim.fn.shellescape(vim.fn.expand("%:t"))
     )
     
-    print("🔨 Compilando " .. vim.fn.expand("%:t") .. "...")
+    print("Compiling " .. vim.fn.expand("%:t") .. "...")
     vim.cmd("!" .. compile_cmd)
-    print("✅ Executável criado: " .. output_name)
+    print("Executable created: " .. output_name)
   end
 
   function _G.run_nim()
@@ -1374,11 +1374,11 @@ local function setup_nim_system()
     local executable_path = file_dir .. "/" .. output_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("❌ Executável não encontrado! Compile primeiro.")
+      print("Executable not found! Compile first.")
       return
     end
     
-    print("🚀 Executando: " .. output_name)
+    print("Running: " .. output_name)
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -1394,7 +1394,7 @@ local function setup_nim_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.nim$") then
-      print("❌ Este não é um arquivo Nim!")
+      print("This is not a Nim file!")
       return
     end
     
@@ -1409,16 +1409,16 @@ local function setup_nim_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.nim$") then
-      print("❌ Este não é um arquivo Nim!")
+      print("This is not a Nim file!")
       return
     end
     
-    print("🐍 Executando script Nim...")
+    print("Running Nim script...")
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -1431,7 +1431,7 @@ local function setup_nim_system()
   end
 
   function _G.create_nim_project()
-    local project_name = vim.fn.input("Nome do projeto Nim: ")
+    local project_name = vim.fn.input("Nim project name: ")
     if project_name == "" then return end
     
     vim.fn.mkdir(project_name, "p")
@@ -1440,14 +1440,14 @@ local function setup_nim_system()
     local main_file = io.open(project_name .. "/src/main.nim", "w")
     if main_file then
       main_file:write([[
-# Hello World em Nim
+# Hello World in Nim
 echo "Hello, World!"
 
-# Exemplo de função
+# Function example
 proc soma(a, b: int): int =
   return a + b
 
-echo "Soma de 2 + 3 = ", soma(2, 3)
+echo "Sum of 2 + 3 = ", soma(2, 3)
 ]])
       main_file:close()
     end
@@ -1455,25 +1455,25 @@ echo "Soma de 2 + 3 = ", soma(2, 3)
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.nim")
     
-    print("✅ Projeto Nim criado: " .. project_name)
+    print("Nim project created: " .. project_name)
   end
 
   function _G.nim_template()
     local template = [[
-# Template Nim
+# Nim Template
 # 
-# Compilar: nim c --hints:off arquivo.nim
-# Executar: ./arquivo
+# Compile: nim c --hints:off file.nim
+# Run: ./file
 
 import std/[strformat, os]
 
 proc main() =
   echo "Hello from Nim!"
-  echo &"Versão do Nim: {NimVersion}"
+  echo &"Nim Version: {NimVersion}"
   echo &"Arguments: {commandLineParams()}"
   
   for i in 1..5:
-    echo &"Contagem: {i}"
+    echo &"Count: {i}"
 
 when isMainModule:
   main()
@@ -1482,34 +1482,34 @@ when isMainModule:
   end
 end
 
--- 🐘 SISTEMA PHP CORRIGIDO
+-- FIXED PHP SYSTEM
 local function setup_php_system()
-  -- Configurações específicas para arquivos PHP
+  -- Specific settings for PHP files
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "php",
     callback = function()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("🐘 Modo PHP ativado! Use <leader>phr para executar no terminal")
+      print("PHP mode activated! Use <leader>phr to run in terminal")
     end
   })
 
-  -- Executar arquivo PHP no terminal
+  -- Run PHP file in terminal
   function _G.run_php()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.php$") then
-      print("❌ Este não é um arquivo PHP!")
+      print("This is not a PHP file!")
       return
     end
     
-    print("🚀 Executando PHP no terminal...")
+    print("Running PHP in terminal...")
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -1519,70 +1519,70 @@ local function setup_php_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("🐘 PHP executado: " .. vim.fn.fnamemodify(current_file, ":t"))
+    print("PHP executed: " .. vim.fn.fnamemodify(current_file, ":t"))
   end
 
-  -- Função de diagnóstico do sistema PHP
+  -- PHP system diagnostic function
   function _G.debug_php_system()
-    print("🔍 Diagnosticando sistema PHP...")
+    print("Diagnosing PHP system...")
     
-    -- Verifica se PHP está instalado
+    -- Check if PHP is installed
     local php_check = vim.fn.system("php -v 2>/dev/null | head -1")
     if vim.v.shell_error ~= 0 then
-      print("❌ PHP não encontrado ou não instalado")
-      print("💡 Instale: sudo apt install php (Linux)")
+      print("PHP not found or not installed")
+      print("Install: sudo apt install php (Linux)")
     else
-      print("✅ PHP encontrado: " .. vim.fn.trim(php_check))
+      print("PHP found: " .. vim.fn.trim(php_check))
     end
     
-    -- Verifica processo PHP rodando
+    -- Check running PHP process
     local php_process = vim.fn.system("pgrep -f 'php -S' 2>/dev/null")
     if php_process ~= "" then
-      print("✅ Servidor PHP rodando - PIDs: " .. vim.fn.trim(php_process))
+      print("PHP server running - PIDs: " .. vim.fn.trim(php_process))
     else
-      print("❌ Nenhum servidor PHP rodando")
+      print("No PHP server running")
     end
     
-    -- Verifica arquivo atual
+    -- Check current file
     local current_file = vim.fn.expand("%:p")
     if current_file ~= "" and string.match(current_file, "%.php$") then
-      print("✅ Arquivo PHP carregado: " .. vim.fn.expand("%:t"))
+      print("PHP file loaded: " .. vim.fn.expand("%:t"))
     else
-      print("❌ Nenhum arquivo PHP carregado")
+      print("No PHP file loaded")
     end
   end
 
-  -- Servidor PHP CORRIGIDO - Versão que funciona
+  -- FIXED PHP SERVER - Working version
   function _G.run_php_server()
     local current_file = vim.fn.expand("%:p")
     local current_dir = vim.fn.expand("%:p:h")
     local file_name = vim.fn.expand("%:t")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.php$") then
-      print("❌ Este não é um arquivo PHP!")
+      print("This is not a PHP file!")
       return
     end
     
-    print("🌐 Iniciando servidor PHP CORRIGIDO...")
-    print("📄 Arquivo: " .. file_name)
-    print("📂 Diretório: " .. current_dir)
+    print("Starting FIXED PHP server...")
+    print("File: " .. file_name)
+    print("Directory: " .. current_dir)
     
-    -- Para servidores anteriores
+    -- Stop previous servers
     _G.kill_process("php")
     
-    -- Verifica se o arquivo existe
+    -- Check if file exists
     if vim.fn.filereadable(current_file) == 0 then
-      print("❌ Arquivo não existe: " .. current_file)
+      print("File does not exist: " .. current_file)
       return
     end
     
     vim.defer_fn(function()
-      -- Inicia servidor PHP no diretório do arquivo
+      -- Start PHP server in file directory
       local php_job = vim.fn.jobstart({
         "php", "-S", "localhost:8000", "-t", current_dir
       }, {
@@ -1592,9 +1592,9 @@ local function setup_php_system()
           if data then
             for _, line in ipairs(data) do
               if line and line ~= "" then
-                -- Filtra logs do servidor PHP
+                -- Filter PHP server logs
                 if not line:match("^%[.*%]") then
-                  print("🐘 PHP: " .. line)
+                  print("PHP: " .. line)
                 end
               end
             end
@@ -1604,7 +1604,7 @@ local function setup_php_system()
           if data then
             for _, line in ipairs(data) do
               if line and line ~= "" then
-                print("❌ PHP Error: " .. line)
+                print("PHP Error: " .. line)
               end
             end
           end
@@ -1612,42 +1612,42 @@ local function setup_php_system()
       })
       
       if php_job <= 0 then
-        print("❌ Falha ao iniciar servidor PHP")
+        print("Failed to start PHP server")
         return
       end
       
-      print("⏳ Aguardando servidor iniciar...")
+      print("Waiting for server to start...")
       
-      -- Aguarda o servidor iniciar completamente
+      -- Wait for server to start completely
       vim.defer_fn(function()
         local url = "http://localhost:8000/" .. file_name
         
         print("")
-        print("✅ SERVIDOR PHP INICIADO COM SUCESSO!")
-        print("📂 Servidor rodando em: " .. current_dir)
-        print("🌐 URL do arquivo: " .. url)
-        print("🐘 Acesse: http://localhost:8000/")
+        print("PHP SERVER STARTED SUCCESSFULLY!")
+        print("Server running in: " .. current_dir)
+        print("File URL: " .. url)
+        print("Access: http://localhost:8000/")
         print("")
-        print("💡 Comandos:")
-        print("   <leader>phq - Parar servidor")
-        print("   <leader>phd - Debug do sistema")
+        print("Commands:")
+        print("   <leader>phq - Stop server")
+        print("   <leader>phd - System debug")
         print("")
         
-        -- Testa se o servidor está respondendo
+        -- Test if server is responding
         vim.defer_fn(function()
           local test_cmd = string.format("curl -s -o /dev/null -w '%%{http_code}' http://localhost:8000/%s 2>/dev/null", file_name)
           local test_result = vim.fn.system(test_cmd)
           test_result = vim.fn.trim(test_result)
           
           if test_result == "200" then
-            print("🎯 Teste de conexão: ✅ SUCESSO (HTTP 200)")
+            print("Connection test: SUCCESS (HTTP 200)")
           else
-            print("🎯 Teste de conexão: ❌ FALHA (Código: " .. (test_result == "" and "N/A" or test_result) .. ")")
-            print("💡 Tente acessar manualmente: " .. url)
+            print("Connection test: FAILED (Code: " .. (test_result == "" and "N/A" or test_result) .. ")")
+            print("Try accessing manually: " .. url)
           end
         end, 1000)
         
-        -- Abre no navegador
+        -- Open in browser
         local os = get_os()
         local browser_cmd
         
@@ -1658,59 +1658,59 @@ local function setup_php_system()
         elseif os == 'windows' then
           browser_cmd = {"cmd", "/c", "start", url}
         else
-          print("⚠️  Sistema não identificado, abra manualmente:")
+          print("System not identified, open manually:")
           print("   " .. url)
           return
         end
         
-        print("🌐 Abrindo navegador...")
+        print("Opening browser...")
         local browser_job = vim.fn.jobstart(browser_cmd, { 
           detach = true,
           on_exit = function()
-            print("✅ Navegador iniciado!")
+            print("Browser started!")
           end
         })
         
         if browser_job <= 0 then
-          print("⚠️  Não foi possível abrir o navegador automaticamente")
-          print("🌐 Acesse manualmente: " .. url)
+          print("Could not open browser automatically")
+          print("Access manually: " .. url)
         end
         
-      end, 2000) -- 2 segundos para o servidor iniciar
+      end, 2000) -- 2 seconds for server to start
       
     end, 500)
   end
 
-  -- Parar servidor PHP
+  -- Stop PHP server
   function _G.stop_php_server()
     _G.kill_process("php")
     local result = vim.fn.system("pgrep -f 'php -S' 2>/dev/null")
     if result == "" then
-      print("🛑 Servidor PHP parado com sucesso!")
+      print("PHP server stopped successfully!")
     else
-      print("ℹ️ Nenhum servidor PHP estava rodando")
+      print("No PHP server was running")
     end
   end
 
-  -- Servidor PHP ULTRA-SIMPLES (para debugging)
+  -- ULTRA-SIMPLE PHP SERVER (for debugging)
   function _G.run_php_simple()
     local current_file = vim.fn.expand("%:p")
     local current_dir = vim.fn.expand("%:p:h")
     local file_name = vim.fn.expand("%:t")
     
-    print("🚀 INICIANDO PHP ULTRA-SIMPLES...")
-    print("📄 Arquivo: " .. file_name)
-    print("📂 Pasta: " .. current_dir)
+    print("STARTING ULTRA-SIMPLE PHP...")
+    print("File: " .. file_name)
+    print("Folder: " .. current_dir)
     
-    -- Comando para executar no terminal
+    -- Command to execute in terminal
     local cmd = "cd '" .. current_dir .. "' && php -S localhost:8000"
     
-    print("💻 Comando: " .. cmd)
-    print("🌐 URL: http://localhost:8000/" .. file_name)
+    print("Command: " .. cmd)
+    print("URL: http://localhost:8000/" .. file_name)
     print("")
-    print("⏳ Iniciando servidor... (Ctrl+C para parar)")
+    print("Starting server... (Ctrl+C to stop)")
     
-    -- Abre terminal com o comando
+    -- Open terminal with command
     vim.cmd("belowright split")
     vim.cmd("resize 8")
     vim.cmd("terminal " .. cmd)
@@ -1721,29 +1721,29 @@ local function setup_php_system()
     vim.cmd("startinsert")
   end
 
-  -- Template PHP
+  -- PHP template
   function _G.php_template()
     local template = [[
 <?php
 /**
- * Template PHP
+ * PHP Template
  * 
- * @author Seu Nome
+ * @author Your Name
  * @version 1.0
  */
 
-// Configurações de exibição de erros
+// Error display settings
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-echo "Hello, World! 🐘\n";
+echo "Hello, World!\n";
 
-// Exemplo de função
+// Function example
 function soma($a, $b) {
     return $a + $b;
 }
 
-// Exemplo de classe
+// Class example
 class Pessoa {
     public $nome;
     
@@ -1752,19 +1752,19 @@ class Pessoa {
     }
     
     public function apresentar() {
-        return "Olá, meu nome é " . $this->nome;
+        return "Hello, my name is " . $this->nome;
     }
 }
 
-// Uso das funções e classes
-echo "Soma: " . soma(5, 3) . "\n";
+// Use of functions and classes
+echo "Sum: " . soma(5, 3) . "\n";
 
-$pessoa = new Pessoa("João");
+$pessoa = new Pessoa("John");
 echo $pessoa->apresentar() . "\n";
 
-// Loop exemplo
+// Loop example
 for ($i = 1; $i <= 5; $i++) {
-    echo "Contagem: $i\n";
+    echo "Count: $i\n";
 }
 
 ?>
@@ -1772,9 +1772,9 @@ for ($i = 1; $i <= 5; $i++) {
     vim.api.nvim_put(vim.split(template, "\n"), "l", true, true)
   end
 
-  -- Criar projeto PHP básico
+  -- Create basic PHP project
   function _G.create_php_project()
-    local project_name = vim.fn.input("Nome do projeto PHP: ")
+    local project_name = vim.fn.input("PHP project name: ")
     if project_name == "" then return end
     
     vim.fn.mkdir(project_name, "p")
@@ -1782,33 +1782,33 @@ for ($i = 1; $i <= 5; $i++) {
     vim.fn.mkdir(project_name .. "/public", "p")
     vim.fn.mkdir(project_name .. "/config", "p")
     
-    -- Cria arquivo index.php
+    -- Create index.php file
     local index_file = io.open(project_name .. "/public/index.php", "w")
     if index_file then
       index_file:write([[
 <?php
 require_once '../src/bootstrap.php';
 
-echo "Bem-vindo ao projeto ]] .. project_name .. [[! 🚀\n";
+echo "Welcome to project ]] .. project_name .. [[!\n";
 ?>
 ]])
       index_file:close()
     end
     
-    -- Cria arquivo bootstrap
+    -- Create bootstrap file
     local bootstrap_file = io.open(project_name .. "/src/bootstrap.php", "w")
     if bootstrap_file then
       bootstrap_file:write([[
 <?php
 /**
- * Bootstrap do projeto
+ * Project bootstrap
  */
 
-// Configurações
+// Settings
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Autoload simples
+// Simple autoload
 spl_autoload_register(function ($class_name) {
     $file = __DIR__ . '/' . $class_name . '.php';
     if (file_exists($file)) {
@@ -1816,7 +1816,7 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-echo "Sistema inicializado! ✅\n";
+echo "System initialized!\n";
 ?>
 ]])
       bootstrap_file:close()
@@ -1825,12 +1825,12 @@ echo "Sistema inicializado! ✅\n";
     vim.cmd("cd " .. project_name)
     vim.cmd("edit public/index.php")
     
-    print("✅ Projeto PHP criado: " .. project_name)
-    print("💡 Execute 'composer install' para instalar dependências")
+    print("PHP project created: " .. project_name)
+    print("Run 'composer install' to install dependencies")
   end
 end
 
--- Sistema C#
+-- C# System
 local function setup_csharp_system()
   function _G.compile_csharp()
     local current_file = vim.fn.expand("%:p")
@@ -1838,12 +1838,12 @@ local function setup_csharp_system()
     local file_name = vim.fn.expand("%:t:r")
     
     if current_file == "" then
-      print("❌ Salve o arquivo primeiro!")
+      print("Save the file first!")
       return
     end
     
     if not string.match(current_file, "%.cs$") then
-      print("❌ Este não é um arquivo C#!")
+      print("This is not a C# file!")
       return
     end
     
@@ -1851,9 +1851,9 @@ local function setup_csharp_system()
       vim.fn.shellescape(file_dir)
     )
     
-    print("🔨 Compilando projeto C#...")
+    print("Compiling C# project...")
     vim.cmd("!" .. compile_cmd)
-    print("✅ Projeto C# compilado!")
+    print("C# project compiled!")
   end
 
   function _G.run_csharp()
@@ -1861,11 +1861,11 @@ local function setup_csharp_system()
     local file_dir = vim.fn.expand("%:p:h")
     
     if not string.match(current_file, "%.cs$") then
-      print("❌ Este não é um arquivo C#!")
+      print("This is not a C# file!")
       return
     end
     
-    print("🚀 Executando projeto C#...")
+    print("Running C# project...")
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -1881,7 +1881,7 @@ local function setup_csharp_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.cs$") then
-      print("❌ Este não é um arquivo C#!")
+      print("This is not a C# file!")
       return
     end
     
@@ -1893,7 +1893,7 @@ local function setup_csharp_system()
   end
 
   function _G.create_csharp_project()
-    local project_name = vim.fn.input("Nome do projeto C#: ")
+    local project_name = vim.fn.input("C# project name: ")
     if project_name == "" then return end
     
     local create_cmd = string.format("dotnet new console -n %s", project_name)
@@ -1902,7 +1902,7 @@ local function setup_csharp_system()
     vim.cmd("cd " .. project_name)
     vim.cmd("edit Program.cs")
     
-    print("✅ Projeto C# criado: " .. project_name)
+    print("C# project created: " .. project_name)
   end
 
   function _G.csharp_template()
@@ -1919,7 +1919,7 @@ namespace HelloWorld
             
             for (int i = 1; i <= 5; i++)
             {
-                Console.WriteLine($"Contagem: {i}");
+                Console.WriteLine($"Count: {i}");
             }
         }
     }
@@ -1933,45 +1933,45 @@ namespace HelloWorld
     local file_dir = vim.fn.expand("%:p:h")
     
     if not string.match(current_file, "%.cs$") then
-      print("❌ Este não é um arquivo C#!")
+      print("This is not a C# file!")
       return
     end
     
     _G.compile_csharp()
     
-    print("🐛 Iniciando debug C#...")
+    print("Starting C# debug...")
     require("dap").continue()
   end
 end
 
 -- =============================================
--- 10. 🔧 FUNÇÕES DE DIAGNÓSTICO E UTILITÁRIAS
+-- 10. DIAGNOSTIC AND UTILITY FUNCTIONS
 -- =============================================
 
 local function setup_utility_functions()
   function _G.diagnose_and_fix_lsp()
-    print("🔍 Diagnosticando LSP...")
+    print("Diagnosing LSP...")
     
     local clients = vim.lsp.get_active_clients()
     if #clients == 0 then
-      print("❌ Nenhum LSP ativo")
-      print("💡 Execute :Mason para instalar LSPs")
+      print("No active LSP")
+      print("Run :Mason to install LSPs")
       return
     end
     
-    print("✅ LSPs Ativos:")
+    print("Active LSPs:")
     for _, client in ipairs(clients) do
-      local status = client.initialized and "🟢" or "🟡"
+      local status = client.initialized and "Initialized" or "Not initialized"
       print(string.format("  %s %s", status, client.name))
     end
     
     vim.cmd("messages clear")
-    print("🧹 Mensagens limpas")
+    print("Messages cleared")
     
     for _, client in ipairs(clients) do
       if not client.initialized then
         vim.lsp.stop_client(client.id)
-        print("🔄 Reiniciando: " .. client.name)
+        print("Restarting: " .. client.name)
       end
     end
   end
@@ -1983,7 +1983,7 @@ local function setup_utility_functions()
         vim.lsp.stop_client(client.id, true)
       end
     end
-    print("🧹 LSP limpo!")
+    print("LSP cleaned!")
   end
 
   function _G.check_mason_status()
@@ -1991,10 +1991,10 @@ local function setup_utility_functions()
     local mason_lsp_ok = pcall(require, "mason-lspconfig")
     
     if mason_ok and mason_lsp_ok then
-      print("✅ Mason carregado com sucesso!")
-      print("📦 Use :Mason para gerenciar LSPs")
+      print("Mason loaded successfully!")
+      print("Use :Mason to manage LSPs")
     else
-      print("❌ Mason não está carregado corretamente")
+      print("Mason not loaded correctly")
     end
   end
 
@@ -2002,19 +2002,19 @@ local function setup_utility_functions()
     local clients = vim.lsp.get_active_clients()
     
     if #clients == 0 then
-      print("❌ NENHUM LSP ATIVO - Auto-completion quebrado!")
-      print("💡 Execute :MasonInstallAll")
+      print("NO ACTIVE LSP - Auto-completion broken!")
+      print("Run :MasonInstallAll")
       return
     end
     
-    print("✅ LSPs Ativos:")
+    print("Active LSPs:")
     for _, client in ipairs(clients) do
-      local status = client.initialized and "🟢" or "🟡"
+      local status = client.initialized and "Initialized" or "Not initialized"
       print(string.format("  %s %s", status, client.name))
     end
     
-    print("\n🎯 Teste estas funcionalidades:")
-    print("  • gd - Ir para definição")
+    print("\nTest these features:")
+    print("  • gd - Go to definition")
     print("  • K - Hover information") 
     print("  • <leader>ca - Code actions")
     print("  • <leader>fm - Format code")
@@ -2022,7 +2022,7 @@ local function setup_utility_functions()
 
   function _G.clear_messages()
     vim.cmd("messages clear")
-    print("🧹 Mensagens limpas!")
+    print("Messages cleared!")
   end
 
   function _G.python_template()
@@ -2031,7 +2031,7 @@ def main():
     print("Hello World!")
     
     for i in range(1, 6):
-        print(f"Contagem: {i}")
+        print(f"Count: {i}")
 
 if __name__ == "__main__":
     main()
@@ -2041,7 +2041,7 @@ if __name__ == "__main__":
 end
 
 -- =============================================
--- 11. ⚡ LAZY.NVIM - GERENCIADOR DE PLUGINS (CORRIGIDO)
+-- 11. LAZY.NVIM - PLUGIN MANAGER (FIXED)
 -- =============================================
 
 local function setup_plugins()
@@ -2059,7 +2059,7 @@ local function setup_plugins()
   vim.opt.rtp:prepend(lazypath)
 
   require("lazy").setup({
-    -- TEMA CORRIGIDO
+    -- FIXED THEME
     {
       "catppuccin/nvim",
       lazy = false,
@@ -2096,15 +2096,15 @@ local function setup_plugins()
           }
         })
         
-        -- 🔥 FORÇA O CARREGAMENTO DO TEMA
+        -- FORCE THEME LOADING
         vim.cmd.colorscheme("catppuccin")
         
-        -- Configurações adicionais para melhorar visualização
+        -- Additional settings to improve visualization
         vim.opt.termguicolors = true
         vim.opt.cursorline = true
         vim.opt.cursorlineopt = "number,line"
         
-        -- Reset dos highlights problemáticos
+        -- Reset problematic highlights
         vim.api.nvim_set_hl(0, 'LineNr', { fg = '#8b949e', bold = false })
         vim.api.nvim_set_hl(0, 'CursorLineNr', { fg = '#fffb00', bold = true })
         vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2b3339' })
@@ -2113,7 +2113,7 @@ local function setup_plugins()
       end,
     },
 
-    -- MASON - GERENCIADOR DE LSPs
+    -- MASON - LSP MANAGER
     {
       "williamboman/mason.nvim",
       config = function()
@@ -2234,7 +2234,7 @@ local function setup_plugins()
           analyze_open_documents_only = false,
         })
 
-        -- Configuração do PHP (intelephense)
+        -- PHP configuration (intelephense)
         require("lspconfig").intelephense.setup({
           on_attach = on_attach,
           capabilities = capabilities,
@@ -2269,7 +2269,7 @@ local function setup_plugins()
           severity_sort = true,
         })
 
-        local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+        local signs = { Error = "E ", Warn = "W ", Hint = "H ", Info = "I " }
         for type, icon in pairs(signs) do
           local hl = "DiagnosticSign" .. type
           vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
@@ -2277,7 +2277,7 @@ local function setup_plugins()
       end,
     },
 
-    -- TREESITTER CORRIGIDO
+    -- FIXED TREESITTER
     {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
@@ -2296,13 +2296,13 @@ local function setup_plugins()
           },
         })
         
-        -- 🔥 ADICIONE ESTAS LINHAS PARA FORÇAR O CARREGAMENTO:
+        -- ADD THESE LINES TO FORCE LOADING:
         vim.cmd("TSEnable highlight")
         vim.cmd("TSEnable indent")
       end,
     },
 
-    -- BARRA DE STATUS
+    -- STATUS BAR
     {
       "nvim-lualine/lualine.nvim",
       dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -2311,8 +2311,8 @@ local function setup_plugins()
           options = {
             theme = 'catppuccin',
             icons_enabled = true,
-            component_separators = { left = '', right = ''},
-            section_separators = { left = '', right = ''},
+            component_separators = { left = '|', right = '|'},
+            section_separators = { left = '', right = ''},
           },
           sections = {
             lualine_a = {'mode'},
@@ -2344,23 +2344,24 @@ local function setup_plugins()
           "   ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║   ",
           "   ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║   ",
           "   ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║   ",
+          "   ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║   ",
           "   ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝   ",
           "                                                   ",
         }
 
         dashboard.section.buttons.val = {
-          dashboard.button("e", "  Novo arquivo", ":ene <BAR> startinsert <CR>"),
-          dashboard.button("p", "  Selecionar pasta", "<cmd>lua focus_project_folder()<CR>"),
-          dashboard.button("f", "  Buscar arquivos", ":Telescope find_files <CR>"),
-          dashboard.button("r", "  Arquivos recentes", ":Telescope oldfiles <CR>"),
-          dashboard.button("g", "  Buscar texto", ":Telescope live_grep <CR>"),
-          dashboard.button("c", "  Configuração", ":e ~/.config/nvim/init.lua <CR>"),
-          dashboard.button("m", "  Gerenciar plugins", ":Lazy<CR>"),
-          dashboard.button("l", "  Gerenciar LSPs", ":Mason<CR>"),
-          dashboard.button("q", "  Sair", ":qa<CR>"),
+          dashboard.button("e", "New file", ":ene <BAR> startinsert <CR>"),
+          dashboard.button("p", "Select folder", "<cmd>lua focus_project_folder()<CR>"),
+          dashboard.button("f", "Find files", ":Telescope find_files <CR>"),
+          dashboard.button("r", "Recent files", ":Telescope oldfiles <CR>"),
+          dashboard.button("g", "Find text", ":Telescope live_grep <CR>"),
+          dashboard.button("c", "Configuration", ":e ~/.config/nvim/init.lua <CR>"),
+          dashboard.button("m", "Manage plugins", ":Lazy<CR>"),
+          dashboard.button("l", "Manage LSPs", ":Mason<CR>"),
+          dashboard.button("q", "Quit", ":qa<CR>"),
         }
 
-        dashboard.section.footer.val = "> Neovim Perfeito - Made by: Eduu! :D <"
+        dashboard.section.footer.val = "> Perfect Neovim - Made by: Eduu! <"
 
         alpha.setup(dashboard.config)
 
@@ -2406,7 +2407,7 @@ local function setup_plugins()
               ["<C-b>"] = "close_window",
               ["o"] = "open",
               ["<CR>"] = "open",
-              ["m"] = { "show_help", nowait = false, config = { title = " Menu de Ações " } },
+              ["m"] = { "show_help", nowait = false, config = { title = " Action Menu " } },
               ["a"] = { 
                 "add",
                 config = {
@@ -2451,9 +2452,9 @@ local function setup_plugins()
         end
 
         vim.keymap.set("n", "<C-b>", "<cmd>lua stable_neo_tree_toggle()<CR>", 
-          { desc = "Abrir/fechar explorer (estável)" })
+          { desc = "Open/close explorer (stable)" })
         vim.keymap.set("n", "<leader>e", "<cmd>Neotree focus<CR>", 
-          { desc = "Focar no file explorer" })
+          { desc = "Focus file explorer" })
       end,
     },
 
@@ -2489,84 +2490,84 @@ local function setup_plugins()
       end,
     },
 
-    -- ÍCONES
+    -- ICONS
     {
       "nvim-tree/nvim-web-devicons",
       config = function()
         require("nvim-web-devicons").setup({
           override = {
             txt = {
-              icon = "",
+              icon = "T",
               color = "#89e051",
               name = "Txt"
             },
             css = {
-              icon = "", 
+              icon = "C", 
               color = "#61afef",
               name = "Css"
             },
             py = {
-              icon = "",
+              icon = "P",
               color = "#ffd43b",
               name = "Python"
             },
             java = {
-              icon = "",
+              icon = "J",
               color = "#ff0000", 
               name = "Java"
             },
             c = {
-              icon = "",
+              icon = "C",
               color = "#599eff",
               name = "C"
             },
             h = {
-              icon = "",
+              icon = "H",
               color = "#599eff", 
               name = "H"
             },
             cpp = {
-              icon = "",
+              icon = "C+",
               color = "#f34b7d",
               name = "Cpp"
             },
             hpp = {
-              icon = "",
+              icon = "H",
               color = "#f34b7d",
               name = "Hpp"
             },
             js = {
-              icon = "",
+              icon = "JS",
               color = "#f7df1e",
               name = "JavaScript"
             },
             html = {
-              icon = "",
+              icon = "<>",
               color = "#e44d26",
               name = "HTML"
             },
             nim = {
-              icon = "󱇐",
+              icon = "N",
               color = "#ffc200",
               name = "Nim"
             },
             cs = {
-              icon = "󰌛",
+              icon = "C#",
               color = "#9b4993",
               name = "CSharp"
             },
             sln = {
-              icon = "",
+              icon = "S",
               color = "#9b4993",
               name = "Solution"
             },
             csproj = {
-              icon = "",
+              icon = "P",
               color = "#9b4993",
               name = "CSharpProject"
             },
             php = {
-              icon = "",
+              icon = "PHP",
               color = "#8993be",
               name = "PHP"
             },
@@ -2687,11 +2688,11 @@ local function setup_plugins()
       config = function()
         require("telescope").setup()
         
-        vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<CR>", { desc = "Buscar arquivos" })
-        vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "Buscar texto" })
-        vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "Buscar buffers" })
-        vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "Buscar ajuda" })
-        vim.keymap.set("n", "<leader>fr", "<cmd>Telescope oldfiles<CR>", { desc = "Arquivos recentes" })
+        vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<CR>", { desc = "Find files" })
+        vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "Find text" })
+        vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "Find buffers" })
+        vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "Find help" })
+        vim.keymap.set("n", "<leader>fr", "<cmd>Telescope oldfiles<CR>", { desc = "Recent files" })
       end,
     },
 
@@ -2700,7 +2701,7 @@ local function setup_plugins()
       "lukas-reineke/indent-blankline.nvim",
       main = "ibl",
       opts = {
-        indent = { char = "▏" },
+        indent = { char = "|" },
         scope = { 
           enabled = true,
           show_start = false,
@@ -2737,89 +2738,89 @@ local function setup_plugins()
 end
 
 -- =============================================
--- 12. 🎯 CONFIGURAÇÕES ESPECÍFICAS POR LINGUAGEM
+-- 12. LANGUAGE SPECIFIC CONFIGURATIONS
 -- =============================================
 
 local function setup_language_specific()
-  -- Configurações específicas para C#
+  -- Specific settings for C#
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "cs",
     callback = function()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("⚡ Modo C# ativado! Use F10 para execução rápida")
+      print("C# mode activated! Use F10 for quick execution")
     end
   })
 
-  -- Atalhos específicos para C
+  -- Specific shortcuts for C
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "c",
     callback = function()
-      print("🅒 Modo C ativado! Use F7 para compilar e executar")
+      print("C mode activated! Use F7 to compile and run")
     end
   })
 
-  -- Atalhos específicos para C++
+  -- Specific shortcuts for C++
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {"cpp", "cc"},
     callback = function()
-      print("🅒🅟🅟 Modo C++ ativado! Use F7 para compilar e executar")
+      print("C++ mode activated! Use F7 to compile and run")
     end
   })
 
-  -- Atalhos específicos para Java
+  -- Specific shortcuts for Java
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "java",
     callback = function()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("☕ Modo Java ativado! Use F8 para execução com bibliotecas")
+      print("Java mode activated! Use F8 for execution with libraries")
     end
   })
 
-  -- Atalhos específicos para Nim
+  -- Specific shortcuts for Nim
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "nim",
     callback = function()
       vim.bo.tabstop = 2
       vim.bo.shiftwidth = 2
       vim.bo.expandtab = true
-      print("🐍 Modo Nim ativado! Use F9 para execução rápida")
+      print("Nim mode activated! Use F9 for quick execution")
     end
   })
 
-  -- Atalhos específicos para PHP
+  -- Specific shortcuts for PHP
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "php",
     callback = function()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("🐘 Modo PHP ativado! Use <leader>phr para executar")
+      print("PHP mode activated! Use <leader>phr to run")
     end
   })
 end
 
 -- =============================================
--- 13. 🎯 DASHBOARD INTELIGENTE (CORRIGIDO)
+-- 13. INTELLIGENT DASHBOARD (FIXED)
 -- =============================================
 
 local function setup_dashboard()
-  -- Variável para controlar se o dashboard já foi aberto
+  -- Variable to control if dashboard was already opened
   vim.g.dashboard_opened = false
   
   vim.api.nvim_create_autocmd("VimEnter", {
     pattern = "*",
     callback = function()
-      -- Só abre se não houver argumentos e o dashboard não foi aberto ainda
+      -- Only open if no arguments and dashboard hasn't been opened yet
       if vim.fn.argc() == 0 and not vim.g.dashboard_opened then
         vim.g.dashboard_opened = true
         
-        -- Aguarda os plugins carregarem completamente
+        -- Wait for plugins to load completely
         vim.defer_fn(function()
-          -- Verifica se há buffers reais abertos
+          -- Check if there are real buffers open
           local has_real_buffers = false
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted') then
@@ -2831,9 +2832,9 @@ local function setup_dashboard()
             end
           end
           
-          -- Só abre o dashboard se não houver buffers reais
+          -- Only open dashboard if no real buffers
           if not has_real_buffers then
-            -- Fecha qualquer buffer vazio que possa interferir
+            -- Close any empty buffers that might interfere
             local empty_buffers = {}
             for _, buf in ipairs(vim.api.nvim_list_bufs()) do
               if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted') then
@@ -2844,17 +2845,17 @@ local function setup_dashboard()
               end
             end
             
-            -- Mantém apenas um buffer vazio se necessário
+            -- Keep only one empty buffer if necessary
             for i, buf in ipairs(empty_buffers) do
               if i < #empty_buffers then
                 vim.api.nvim_buf_delete(buf, { force = true })
               end
             end
             
-            -- Abre o dashboard
+            -- Open dashboard
             vim.cmd("Alpha")
             
-            -- Confirma que o dashboard está aberto
+            -- Confirm dashboard is open
             vim.defer_fn(function()
               local current_buf = vim.api.nvim_get_current_buf()
               local buf_name = vim.api.nvim_buf_get_name(current_buf)
@@ -2863,16 +2864,16 @@ local function setup_dashboard()
               end
             end, 100)
           end
-        end, 100) -- Aumentei o delay para 100ms
+        end, 100) -- Increased delay to 100ms
       end
     end
   })
 
-  -- Autocomando mais simples para quando fechar todos os buffers
+  -- Simpler autocommand for when closing all buffers
   vim.api.nvim_create_autocmd("BufDelete", {
     callback = function()
       vim.defer_fn(function()
-        -- Conta apenas buffers "reais" (com arquivos)
+        -- Count only "real" buffers (with files)
         local real_buffers = 0
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
           if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted') then
@@ -2886,7 +2887,7 @@ local function setup_dashboard()
           end
         end
         
-        -- Se não há buffers reais, abre o dashboard
+        -- If no real buffers, open dashboard
         if real_buffers == 0 and not vim.g.dashboard_opened then
           vim.g.dashboard_opened = true
           vim.cmd("Alpha")
@@ -2895,7 +2896,7 @@ local function setup_dashboard()
     end
   })
   
-  -- Reseta a flag quando o dashboard é fechado manualmente
+  -- Reset flag when dashboard is manually closed
   vim.api.nvim_create_autocmd("BufWinLeave", {
     pattern = "*",
     callback = function(args)
@@ -2908,25 +2909,25 @@ local function setup_dashboard()
 end
 
 -- =============================================
--- 14. 🔧 DEBUG DE FILETYPES
+-- 14. FILETYPES DEBUG
 -- =============================================
 
--- Debug de filetypes (opcional - desative se não precisar)
+-- Filetypes debug (optional - disable if not needed)
 vim.api.nvim_create_autocmd({"BufEnter", "FileType"}, {
   callback = function(args)
     local ft = vim.bo.filetype
     local bufname = vim.api.nvim_buf_get_name(args.buf)
     
-    -- Só mostra debug para arquivos reais (não temporários)
+    -- Only show debug for real files (not temporary)
     if bufname ~= "" and not string.match(bufname, "^term://") then
-      -- Comente a linha abaixo se o debug estiver muito verboso
-      -- print("📁 Arquivo: " .. vim.fn.fnamemodify(bufname, ":t") .. " | 🏷️  Filetype: " .. ft)
+      -- Comment line below if debug is too verbose
+      -- print("File: " .. vim.fn.fnamemodify(bufname, ":t") .. " | Filetype: " .. ft)
     end
   end,
 })
 
 -- =============================================
--- 🚀 INICIALIZAÇÃO PRINCIPAL
+-- MAIN INITIALIZATION
 -- =============================================
 
 local function init()
@@ -2938,7 +2939,7 @@ local function init()
   setup_buffer_system()
   setup_python_system()
   setup_c_cpp_system()
-  setup_java_system()  -- Sistema Java do código 2
+  setup_java_system()
   setup_nim_system()
   setup_php_system()
   setup_csharp_system()
@@ -2948,9 +2949,5 @@ local function init()
   setup_dashboard()
 
 end
-
--- =============================================
--- 🎯 EXECUÇÃO DA CONFIGURAÇÃO
--- =============================================
 
 init()
