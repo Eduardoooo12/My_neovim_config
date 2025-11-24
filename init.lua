@@ -1,4 +1,4 @@
--- ============================================-- 
+-- =============================================
 -- Best neovim || by: Eduuu, the best
 -- =============================================
 
@@ -37,7 +37,6 @@ local function setup_error_handling()
       "stack traceback:",
       "Feature will be removed in nvim%-lspconfig v3%.0%.0",
       "see :help lspconfig%-nvim%-0%.11",
-      
     }
     
     for _, pattern in ipairs(silent_patterns) do
@@ -125,12 +124,12 @@ local function setup_basic_config()
 end
 
 -- =============================================
--- 3. UTILITY FUNCTIONS
+-- 3. UTILITY FUNCTIONS (MULTIPLATFORM FIXED)
 -- =============================================
 
--- Cross-platform system
+-- Cross-platform system detection
 local function get_os()
-  if vim.fn.has('win32') == 1 then
+  if vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1 then
     return 'windows'
   elseif vim.fn.has('unix') == 1 then
     if vim.fn.has('mac') == 1 then
@@ -143,15 +142,188 @@ local function get_os()
   end
 end
 
--- Cross-platform process kill function
+-- Get home directory for current OS (FIXED)
+function _G.get_home_dir()
+  local os = get_os()
+  if os == 'windows' then
+    return vim.fn.getenv("USERPROFILE") or "C:\\"
+  else
+    return vim.fn.getenv("HOME") or "/tmp"
+  end
+end
+
+-- Get appropriate shell for current OS (IMPROVED)
+function _G.get_shell()
+  local os = get_os()
+  if os == 'windows' then
+    return vim.fn.executable('pwsh') == 1 and "pwsh" or "cmd.exe"
+  elseif os == 'macos' then
+    return vim.fn.executable('zsh') == 1 and "zsh" or "bash"
+  else
+    return vim.fn.executable('bash') == 1 and "bash" or "sh"
+  end
+end
+
+-- Safe cross-platform process kill function (IMPROVED)
 function _G.kill_process(process_name)
   local os = get_os()
   
   if os == 'linux' or os == 'macos' then
-    vim.fn.system("pkill -f " .. vim.fn.shellescape(process_name))
+    local result = vim.fn.system(string.format("pkill -f %s 2>/dev/null; echo $?", 
+      vim.fn.shellescape(process_name)))
+    return tonumber(vim.fn.trim(result)) == 0
   elseif os == 'windows' then
-    vim.fn.system("taskkill /f /im " .. vim.fn.shellescape(process_name) .. " 2>nul")
+    local result = vim.fn.system(string.format('taskkill /f /im "%s" 2>nul & echo %%ERRORLEVEL%%', 
+      process_name))
+    return tonumber(vim.fn.trim(result)) == 0
   end
+  return false
+end
+
+-- Check if command is available
+function _G.command_exists(cmd)
+  return vim.fn.executable(cmd) == 1
+end
+
+-- Universal folder picker with fallbacks (IMPROVED)
+function _G.universal_folder_picker()
+  local os = get_os()
+  
+  if os == 'linux' then
+    if _G.command_exists('zenity') then
+      return "zenity --file-selection --directory --title='Select a folder to focus'"
+    elseif _G.command_exists('kdialog') then
+      return "kdialog --getexistingdirectory . 'Select a folder to focus'"
+    else
+      vim.notify("No GUI folder picker found. Install zenity or kdialog.", vim.log.levels.WARN)
+      return "echo ."
+    end
+  elseif os == 'macos' then
+    return "osascript -e 'tell app \"Finder\" to choose folder with prompt \"Select a folder to focus\"'"
+  elseif os == 'windows' then
+    return 'powershell -Command "Add-Type -AssemblyName System.Windows.Forms; $folder = New-Object System.Windows.Forms.FolderBrowserDialog; $folder.Description = \\\"Select a folder to focus\\\"; if($folder.ShowDialog() -eq \\\"OK\\\") { Write-Output $folder.SelectedPath }"'
+  else
+    vim.notify("Unsupported OS for folder picker", vim.log.levels.WARN)
+    return "echo ."
+  end
+end
+
+-- Open file manager for current OS with fallbacks (IMPROVED)
+function _G.open_file_manager(path)
+  local os = get_os()
+  local command
+  
+  -- Ensure path exists
+  path = path or vim.fn.getcwd()
+  
+  if os == 'linux' then
+    if _G.command_exists('nautilus') then
+      command = {"nautilus", path}
+    elseif _G.command_exists('dolphin') then
+      command = {"dolphin", path}
+    elseif _G.command_exists('thunar') then
+      command = {"thunar", path}
+    elseif _G.command_exists('xdg-open') then
+      command = {"xdg-open", path}
+    else
+      vim.notify("No file manager found. Install nautilus, dolphin, thunar or xdg-utils.", vim.log.levels.WARN)
+      return false
+    end
+  elseif os == 'macos' then
+    command = {"open", path}
+  elseif os == 'windows' then
+    command = {"explorer", path}
+  else
+    vim.notify("Operating system not supported", vim.log.levels.ERROR)
+    return false
+  end
+  
+  local job_id = vim.fn.jobstart(command, { detach = true })
+  if job_id <= 0 then
+    vim.notify("Failed to open file manager", vim.log.levels.ERROR)
+    return false
+  end
+  return true
+end
+
+-- Open URL in default browser with error handling (IMPROVED)
+function _G.open_url(url)
+  local os = get_os()
+  local command
+  
+  if os == 'linux' then
+    if _G.command_exists('xdg-open') then
+      command = {"xdg-open", url}
+    else
+      vim.notify("xdg-open not found. Install xdg-utils.", vim.log.levels.WARN)
+      return false
+    end
+  elseif os == 'macos' then
+    command = {"open", url}
+  elseif os == 'windows' then
+    command = {"cmd", "/c", "start", "", url}
+  else
+    vim.notify("System not identified", vim.log.levels.ERROR)
+    return false
+  end
+  
+  local job_id = vim.fn.jobstart(command, { detach = true })
+  if job_id <= 0 then
+    vim.notify("Failed to open URL", vim.log.levels.ERROR)
+    return false
+  end
+  return true
+end
+
+-- Check system dependencies with better detection (IMPROVED)
+function _G.check_dependencies()
+  local os = get_os()
+  local missing = {}
+  
+  -- Verificar compiladores
+  if not _G.command_exists('gcc') and not _G.command_exists('clang') then
+    table.insert(missing, "C compiler (gcc/clang)")
+  end
+  
+  if not _G.command_exists('g++') and not _G.command_exists('clang++') then
+    table.insert(missing, "C++ compiler (g++/clang++)")
+  end
+  
+  if not _G.command_exists('java') then
+    table.insert(missing, "Java JDK")
+  end
+  
+  if not _G.command_exists('python3') and not _G.command_exists('python') then
+    table.insert(missing, "Python")
+  end
+  
+  if not _G.command_exists('nim') then
+    table.insert(missing, "Nim")
+  end
+  
+  if not _G.command_exists('dotnet') then
+    table.insert(missing, ".NET SDK")
+  end
+  
+  if not _G.command_exists('php') then
+    table.insert(missing, "PHP")
+  end
+  
+  -- Verificar ferramentas úteis
+  if os == 'linux' then
+    if not _G.command_exists('xdg-open') then
+      table.insert(missing, "xdg-utils (para abrir URLs/arquivos)")
+    end
+  end
+  
+  if #missing > 0 then
+    vim.notify("⚠️  Missing dependencies: " .. table.concat(missing, ", "), vim.log.levels.WARN)
+    vim.notify("💡 Some language features may not work properly", vim.log.levels.INFO)
+  else
+    vim.notify("✅ All dependencies available!", vim.log.levels.INFO)
+  end
+  
+  return #missing == 0
 end
 
 -- Terminal system
@@ -159,7 +331,7 @@ local function create_close_button(buf)
   vim.keymap.set('n', '<leader>cx', function()
     if vim.api.nvim_buf_is_valid(buf) then
       vim.api.nvim_buf_delete(buf, { force = true })
-      print(" Terminal closed")
+      vim.notify("Terminal closed", vim.log.levels.INFO)
     end
   end, { buffer = buf, desc = "Close this terminal" })
 end
@@ -169,7 +341,7 @@ end
 -- =============================================
 
 function _G.diagnose_syntax_issues()
-  print("Diagnosing syntax highlighting issues...")
+  vim.notify("Diagnosing syntax highlighting issues...", vim.log.levels.INFO)
   
   -- Check Treesitter
   local ts_ok = pcall(require, "nvim-treesitter")
@@ -199,10 +371,13 @@ function _G.diagnose_syntax_issues()
   
   -- Check theme colors
   print("\nTheme: " .. (vim.g.colors_name or "Not defined"))
+  
+  -- Check dependencies
+  _G.check_dependencies()
 end
 
 function _G.reset_syntax_highlighting()
-  print("Resetting syntax highlighting...")
+  vim.notify("Resetting syntax highlighting...", vim.log.levels.INFO)
   
   -- Reload current file
   vim.cmd("edit!")
@@ -212,7 +387,7 @@ function _G.reset_syntax_highlighting()
   if ts_ok then
     vim.cmd("TSDisable highlight")
     vim.cmd("TSEnable highlight")
-    print("Treesitter reloaded")
+    vim.notify("Treesitter reloaded", vim.log.levels.INFO)
   end
   
   -- Reload LSP
@@ -223,8 +398,8 @@ function _G.reset_syntax_highlighting()
   
   vim.defer_fn(function()
     vim.cmd("LspRestart")
-    print("LSP restarted")
-    print("Syntax highlighting reset!")
+    vim.notify("LSP restarted", vim.log.levels.INFO)
+    vim.notify("Syntax highlighting reset!", vim.log.levels.INFO)
   end, 500)
 end
 
@@ -259,6 +434,7 @@ local function setup_keymaps()
   vim.keymap.set("n", "<leader>cm", "<cmd>lua clear_messages()<CR>", { desc = "Clear messages" })
   vim.keymap.set("n", "<leader>ds", "<cmd>lua diagnose_syntax_issues()<CR>", { desc = "Diagnose syntax" })
   vim.keymap.set("n", "<leader>rs", "<cmd>lua reset_syntax_highlighting()<CR>", { desc = "Reset syntax" })
+  vim.keymap.set("n", "<leader>chk", "<cmd>lua check_dependencies()<CR>", { desc = "Check dependencies" })
 
   -- WORKSPACE
   vim.keymap.set("n", "<leader>wo", "<cmd>lua focus_project_folder()<CR>", { desc = "Open folder selector" })
@@ -321,7 +497,7 @@ local function setup_keymaps()
     end
     
     vim.g.python_terminal_buf = nil
-    print("Closed " .. closed_count .. " terminals")
+    vim.notify("Closed " .. closed_count .. " terminals", vim.log.levels.INFO)
   end, { desc = "Close all terminals" })
 
   -- JAVA (SYSTEM FROM CODE 2)
@@ -344,7 +520,7 @@ local function setup_keymaps()
     elseif string.match(current_file, "%.cpp$") or string.match(current_file, "%.cc$") then
       _G.compile_cpp()
     else
-      print("File is not C/C++!")
+      vim.notify("File is not C/C++!", vim.log.levels.WARN)
     end
   end, { desc = "Compile C/C++" })
 
@@ -370,7 +546,7 @@ local function setup_keymaps()
   vim.keymap.set("n", "<leader>nn", "<cmd>lua create_nim_project()<CR>", { desc = "Create Nim project" })
   vim.keymap.set("n", "<leader>nt", "<cmd>lua nim_template()<CR>", { desc = "Nim template" })
 
-    -- PHP
+  -- PHP
   vim.keymap.set("n", "<leader>phr", "<cmd>lua run_php()<CR>", { desc = "Run PHP in terminal" })
   vim.keymap.set("n", "<leader>phs", "<cmd>lua run_php_server()<CR>", { desc = "PHP Server Fixed" })
   vim.keymap.set("n", "<leader>phS", "<cmd>lua run_php_simple()<CR>", { desc = "PHP Ultra-Simple" })
@@ -384,17 +560,21 @@ local function setup_keymaps()
     local current_dir = vim.fn.expand("%:p:h")
     local current_file = vim.fn.expand("%:t")
     
-    print("Starting SAFE Live Server...")
+    vim.notify("Starting SAFE Live Server...", vim.log.levels.INFO)
     
     _G.kill_process("live-server")
     
     vim.defer_fn(function()
+      if not _G.command_exists('live-server') then
+        vim.notify("live-server not found. Install with: npm install -g live-server", vim.log.levels.ERROR)
+        return
+      end
+      
       local job_id = vim.fn.jobstart({
         "live-server",
         current_dir,
         "--port=5500",
         "--host=localhost",
-        "--browser=brave-browser",
         "--wait=300",
         "--ignore=node_modules,.git",
         "--no-css-inject",
@@ -405,28 +585,26 @@ local function setup_keymaps()
           if data then
             for _, line in ipairs(data) do
               if line and line ~= "" then
-                print("Live Server: " .. line)
+                vim.notify("Live Server: " .. line, vim.log.levels.INFO)
               end
             end
           end
         end,
         on_exit = function()
-          print("Live Server stopped")
+          vim.notify("Live Server stopped", vim.log.levels.INFO)
         end
       })
       
       if job_id <= 0 then
-        print("Error starting Live Server")
+        vim.notify("Error starting Live Server", vim.log.levels.ERROR)
         return
       end
       
       vim.defer_fn(function()
-        vim.fn.jobstart({"brave-browser", "http://localhost:5500/" .. current_file}, { 
-          detach = true 
-        })
+        _G.open_url("http://localhost:5500/" .. current_file)
       end, 2000)
       
-      print("SAFE Live Server started!")
+      vim.notify("SAFE Live Server started!", vim.log.levels.INFO)
       print("Folder: " .. current_dir)
       print("URL: http://localhost:5500")
       print("Use <leader>lsq to stop the server")
@@ -435,19 +613,28 @@ local function setup_keymaps()
   end, { desc = "Start safe Live Server" })
 
   vim.keymap.set("n", "<leader>lsq", function()
-    _G.kill_process("live-server")
-    if vim.v.shell_error == 0 then
-      print("Live Server stopped successfully!")
+    if _G.kill_process("live-server") then
+      vim.notify("Live Server stopped successfully!", vim.log.levels.INFO)
     else
-      print("No Live Server was running")
+      vim.notify("No Live Server was running", vim.log.levels.INFO)
     end
   end, { desc = "Stop Live Server" })
 
   vim.keymap.set("n", "<leader>lsl", function()
-    local result = vim.fn.system("pgrep -f live-server")
+    local os = get_os()
+    local result
+    
+    if os == 'windows' then
+      result = vim.fn.system('tasklist /fi "imagename eq live-server*" 2>nul')
+    else
+      result = vim.fn.system("pgrep -f live-server 2>/dev/null")
+    end
+    
     if result ~= "" then
       print("Live Server RUNNING - http://localhost:5500")
-      print("PIDs: " .. result)
+      if os ~= 'windows' then
+        print("PIDs: " .. result)
+      end
     else
       print("Live Server STOPPED - Use <leader>lss to start")
     end
@@ -472,7 +659,7 @@ local function setup_keymaps()
     end, { buffer = term_buf, desc = "Close this terminal" })
     
     vim.cmd("startinsert")
-    print("Clean terminal opened (F5)")
+    vim.notify("Clean terminal opened (F5)", vim.log.levels.INFO)
   end, { desc = "Open clean terminal" })
 
   vim.keymap.set("n", "<F6>", "<cmd>lua run_python_quick()<CR>", { desc = "Run Python" })
@@ -485,7 +672,7 @@ local function setup_keymaps()
     elseif string.match(current_file, "%.cpp$") or string.match(current_file, "%.cc$") then
       _G.compile_and_run_cpp()
     else
-      print("File is not C/C++! Use F5 for general terminal.")
+      vim.notify("File is not C/C++! Use F5 for general terminal.", vim.log.levels.WARN)
     end
   end, { desc = "Compile + Run C/C++" })
 
@@ -497,7 +684,7 @@ local function setup_keymaps()
     if string.match(current_file, "%.nim$") then
       _G.compile_and_run_nim()
     else
-      print("File is not Nim! Use F5 for general terminal.")
+      vim.notify("File is not Nim! Use F5 for general terminal.", vim.log.levels.WARN)
     end
   end, { desc = "Compile+Run Nim" })
 
@@ -506,7 +693,7 @@ local function setup_keymaps()
     if string.match(current_file, "%.cs$") then
       _G.compile_and_run_csharp()
     else
-      print("File is not C#! Use F5 for general terminal.")
+      vim.notify("File is not C#! Use F5 for general terminal.", vim.log.levels.WARN)
     end
   end, { desc = "Compile+Run C#" })
 end
@@ -538,7 +725,7 @@ local function setup_auto_save()
       
       if filename ~= "" then
         vim.cmd('silent write')
-        print('Auto-save: ' .. filename)
+        vim.notify('Auto-save: ' .. filename, vim.log.levels.INFO)
       end
     end
   end
@@ -553,34 +740,22 @@ local function setup_auto_save()
   function _G.toggle_auto_save()
     vim.g.auto_save_active = not vim.g.auto_save_active
     if vim.g.auto_save_active then
-      print('Auto-save ENABLED')
+      vim.notify('Auto-save ENABLED', vim.log.levels.INFO)
     else
-      print('Auto-save DISABLED')
+      vim.notify('Auto-save DISABLED', vim.log.levels.INFO)
     end
   end
 end
 
 -- =============================================
--- 7. WORKSPACE SYSTEM
+-- 7. WORKSPACE SYSTEM (MULTIPLATFORM FIXED)
 -- =============================================
 
 local function setup_workspace()
   vim.g.focused_folder = nil
 
   function _G.focus_project_folder()
-    local os = get_os()
-    local command
-    
-    if os == 'linux' then
-      command = "zenity --file-selection --directory --title='Select a folder to focus'"
-    elseif os == 'macos' then
-      command = "osascript -e 'tell app \"Finder\" to choose folder with prompt \"Select a folder to focus\"'"
-    elseif os == 'windows' then
-      command = "powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; $folder = New-Object System.Windows.Forms.FolderBrowserDialog; $folder.Description = 'Select a folder to focus'; if($folder.ShowDialog() -eq 'OK') { Write-Output $folder.SelectedPath }\""
-    else
-      print("Operating system not supported")
-      return
-    end
+    local command = _G.universal_folder_picker()
     
     local handle = io.popen(command)
     if handle then
@@ -589,19 +764,19 @@ local function setup_workspace()
       
       folder_path = folder_path and vim.fn.trim(folder_path) or nil
       
-      if folder_path and folder_path ~= "" then
+      if folder_path and folder_path ~= "" and folder_path ~= "." then
         vim.g.focused_folder = folder_path
         vim.cmd("Neotree close")
         vim.cmd("cd " .. vim.fn.fnameescape(folder_path))
         vim.cmd("Neotree reveal filesystem " .. vim.fn.fnameescape(folder_path))
         
-        print("Focused folder: " .. folder_path)
+        vim.notify("Focused folder: " .. folder_path, vim.log.levels.INFO)
         print("Use <leader>wr to reset focus")
       else
-        print("No folder selected")
+        vim.notify("No folder selected", vim.log.levels.INFO)
       end
     else
-      print("Error opening folder selector")
+      vim.notify("Error opening folder selector", vim.log.levels.ERROR)
     end
   end
 
@@ -610,7 +785,7 @@ local function setup_workspace()
     local current_dir = vim.fn.getcwd()
     vim.cmd("Neotree close")
     vim.cmd("Neotree reveal")
-    print("Focus reset to: " .. current_dir)
+    vim.notify("Focus reset to: " .. current_dir, vim.log.levels.INFO)
   end
 
   function _G.show_focused_folder()
@@ -624,23 +799,13 @@ local function setup_workspace()
   end
 
   function _G.open_folder_in_explorer()
-    local os = get_os()
     local folder_to_open = vim.g.focused_folder or vim.fn.getcwd()
     
-    local command
-    if os == 'linux' then
-      command = {"xdg-open", folder_to_open}
-    elseif os == 'macos' then
-      command = {"open", folder_to_open}
-    elseif os == 'windows' then
-      command = {"explorer", folder_to_open}
+    if _G.open_file_manager(folder_to_open) then
+      vim.notify("Opening folder in file manager: " .. folder_to_open, vim.log.levels.INFO)
     else
-      print("Operating system not supported")
-      return
+      vim.notify("Failed to open file manager", vim.log.levels.ERROR)
     end
-    
-    vim.fn.jobstart(command, { detach = true })
-    print("Opening folder in file manager: " .. folder_to_open)
   end
 
   vim.api.nvim_create_autocmd("FileType", {
@@ -748,12 +913,13 @@ local function setup_buffer_system()
 end
 
 -- =============================================
--- 9. LANGUAGE SYSTEMS
+-- 9. LANGUAGE SYSTEMS (MULTIPLATFORM FIXED)
 -- =============================================
 
--- Python System
+-- Python System (IMPROVED)
 local function setup_python_system()
-  vim.opt.shell = "zsh"
+  -- Set appropriate shell for current OS
+  vim.opt.shell = _G.get_shell()
   vim.g.python_terminal_buf = nil
 
   vim.api.nvim_create_autocmd("TermOpen", {
@@ -780,16 +946,21 @@ local function setup_python_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.py$") then
-      print("This is not a Python file!")
+      vim.notify("This is not a Python file!", vim.log.levels.WARN)
       return
     end
     
-    local python_cmd = vim.fn.executable("python3") == 1 and "python3" or "python"
+    local python_cmd = _G.command_exists("python3") and "python3" or "python"
+    
+    if not _G.command_exists(python_cmd) then
+      vim.notify("Python is not installed!", vim.log.levels.ERROR)
+      return
+    end
     
     if vim.g.python_terminal_buf and vim.api.nvim_buf_is_valid(vim.g.python_terminal_buf) then
       vim.api.nvim_buf_delete(vim.g.python_terminal_buf, { force = true })
@@ -804,16 +975,16 @@ local function setup_python_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("Running: " .. vim.fn.fnamemodify(current_file, ":t"))
+    vim.notify("Running: " .. vim.fn.fnamemodify(current_file, ":t"), vim.log.levels.INFO)
   end
 
   function _G.close_python_terminal()
     if vim.g.python_terminal_buf and vim.api.nvim_buf_is_valid(vim.g.python_terminal_buf) then
       vim.api.nvim_buf_delete(vim.g.python_terminal_buf, { force = true })
       vim.g.python_terminal_buf = nil
-      print("Python terminal closed")
+      vim.notify("Python terminal closed", vim.log.levels.INFO)
     else
-      print("No Python terminal open")
+      vim.notify("No Python terminal open", vim.log.levels.INFO)
     end
   end
 
@@ -821,21 +992,34 @@ local function setup_python_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
-    local python_cmd = vim.fn.executable("python3") == 1 and "python3" or "python"
+    local python_cmd = _G.command_exists("python3") and "python3" or "python"
+    
+    if not _G.command_exists(python_cmd) then
+      vim.notify("Python is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    local os = get_os()
+    local keep_cmd
+    if os == 'windows' then
+      keep_cmd = string.format("%s \"%s\" && pause", python_cmd, current_file)
+    else
+      keep_cmd = string.format("%s \"%s\"; exec %s", python_cmd, current_file, _G.get_shell())
+    end
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
-    vim.cmd(string.format("terminal %s '%s'; exec bash", python_cmd, current_file))
+    vim.cmd("terminal " .. keep_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("Python terminal opened: " .. vim.fn.fnamemodify(current_file, ":t"))
+    vim.notify("Python terminal opened: " .. vim.fn.fnamemodify(current_file, ":t"), vim.log.levels.INFO)
   end
 
   vim.keymap.set("v", "<leader>ps", function()
@@ -846,7 +1030,7 @@ local function setup_python_system()
     vim.cmd("resize 8")
     vim.cmd("terminal")
     
-    local python_cmd = vim.fn.executable("python3") == 1 and "python3" or "python"
+    local python_cmd = _G.command_exists("python3") and "python3" or "python"
     local full_cmd = string.format('%s -c "%s"', python_cmd, selected_text)
     
     vim.api.nvim_feedkeys(full_cmd, "n", false)
@@ -856,11 +1040,11 @@ local function setup_python_system()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("Running selected code...")
+    vim.notify("Running selected code...", vim.log.levels.INFO)
   end, { desc = "Run selected code" })
 end
 
--- C/C++ System
+-- C/C++ System (IMPROVED)
 local function setup_c_cpp_system()
   -- Indentation settings for C/C++
   vim.api.nvim_create_autocmd("FileType", {
@@ -873,78 +1057,140 @@ local function setup_c_cpp_system()
     end
   })
 
-  -- Compile C
+  -- Get C compiler for current OS
+  function _G.get_c_compiler()
+    if _G.command_exists('gcc') then
+      return 'gcc'
+    elseif _G.command_exists('clang') then
+      return 'clang'
+    else
+      return nil
+    end
+  end
+
+  -- Get C++ compiler for current OS
+  function _G.get_cpp_compiler()
+    if _G.command_exists('g++') then
+      return 'g++'
+    elseif _G.command_exists('clang++') then
+      return 'clang++'
+    else
+      return nil
+    end
+  end
+
+  -- Compile C (IMPROVED)
   function _G.compile_c()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.c$") then
-      print("This is not a C file!")
+      vim.notify("This is not a C file!", vim.log.levels.WARN)
       return
     end
     
-    local compile_cmd = string.format("cd %s && gcc -Wall -Wextra -std=c11 -g '%s' -o '%s'", 
+    local compiler = _G.get_c_compiler()
+    if not compiler then
+      vim.notify("No C compiler found! Install gcc or clang.", vim.log.levels.ERROR)
+      return
+    end
+    
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local output_file = output_name .. output_ext
+    
+    local compile_cmd = string.format("cd %s && %s -Wall -Wextra -std=c11 -g %s -o %s", 
       vim.fn.shellescape(file_dir),
+      compiler,
       vim.fn.shellescape(vim.fn.expand("%:t")),
-      vim.fn.shellescape(output_name)
+      vim.fn.shellescape(output_file)
     )
     
-    print("Compiling " .. vim.fn.expand("%:t") .. "...")
-    vim.cmd("!" .. compile_cmd)
-    print("Executable created: " .. output_name)
+    vim.notify("Compiling " .. vim.fn.expand("%:t") .. "...", vim.log.levels.INFO)
+    local result = vim.fn.system(compile_cmd)
+    if result ~= "" then
+      vim.notify("Compilation errors:\n" .. result, vim.log.levels.ERROR)
+    else
+      vim.notify("Executable created: " .. output_file, vim.log.levels.INFO)
+    end
   end
 
-  -- Compile C++
+  -- Compile C++ (IMPROVED)
   function _G.compile_cpp()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.cpp$") and not string.match(current_file, "%.cc$") then
-      print("This is not a C++ file!")
+      vim.notify("This is not a C++ file!", vim.log.levels.WARN)
       return
     end
     
-    local compile_cmd = string.format("cd %s && g++ -Wall -Wextra -std=c++17 -g '%s' -o '%s'", 
+    local compiler = _G.get_cpp_compiler()
+    if not compiler then
+      vim.notify("No C++ compiler found! Install g++ or clang++.", vim.log.levels.ERROR)
+      return
+    end
+    
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local output_file = output_name .. output_ext
+    
+    local compile_cmd = string.format("cd %s && %s -Wall -Wextra -std=c++17 -g %s -o %s", 
       vim.fn.shellescape(file_dir),
+      compiler,
       vim.fn.shellescape(vim.fn.expand("%:t")),
-      vim.fn.shellescape(output_name)
+      vim.fn.shellescape(output_file)
     )
     
-    print("Compiling " .. vim.fn.expand("%:t") .. "...")
-    vim.cmd("!" .. compile_cmd)
-    print("Executable created: " .. output_name)
+    vim.notify("Compiling " .. vim.fn.expand("%:t") .. "...", vim.log.levels.INFO)
+    local result = vim.fn.system(compile_cmd)
+    if result ~= "" then
+      vim.notify("Compilation errors:\n" .. result, vim.log.levels.ERROR)
+    else
+      vim.notify("Executable created: " .. output_file, vim.log.levels.INFO)
+    end
   end
 
-  -- Run C/C++ program
+  -- Run C/C++ program (IMPROVED)
   function _G.run_executable()
     local current_file = vim.fn.expand("%:p")
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
-    local executable_path = file_dir .. "/" .. output_name
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local executable_name = output_name .. output_ext
+    local executable_path = file_dir .. "/" .. executable_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("Executable not found! Compile first.")
+      vim.notify("Executable not found! Compile first.", vim.log.levels.WARN)
       return
     end
     
-    print("Running: " .. output_name)
+    vim.notify("Running: " .. executable_name, vim.log.levels.INFO)
+    
+    local run_cmd
+    if os == 'windows' then
+      run_cmd = "cd " .. vim.fn.shellescape(file_dir) .. " && " .. vim.fn.shellescape(executable_name)
+    else
+      run_cmd = "cd " .. vim.fn.shellescape(file_dir) .. " && ./" .. vim.fn.shellescape(executable_name)
+    end
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
-    vim.cmd("terminal cd '" .. file_dir .. "' && ./'" .. output_name .. "'")
+    vim.cmd("terminal " .. run_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
@@ -957,7 +1203,7 @@ local function setup_c_cpp_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.c$") then
-      print("This is not a C file!")
+      vim.notify("This is not a C file!", vim.log.levels.WARN)
       return
     end
     
@@ -972,7 +1218,7 @@ local function setup_c_cpp_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.cpp$") and not string.match(current_file, "%.cc$") then
-      print("This is not a C++ file!")
+      vim.notify("This is not a C++ file!", vim.log.levels.WARN)
       return
     end
     
@@ -989,18 +1235,26 @@ local function setup_c_cpp_system()
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
-    local executable_path = file_dir .. "/" .. output_name
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local executable_name = output_name .. output_ext
+    local executable_path = file_dir .. "/" .. executable_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("Executable not found! Compile first with debug flags.")
+      vim.notify("Executable not found! Compile first with debug flags.", vim.log.levels.WARN)
       return
     end
     
-    print("Starting debug with GDB...")
+    if not _G.command_exists('gdb') then
+      vim.notify("GDB is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("Starting debug with GDB...", vim.log.levels.INFO)
     
     vim.cmd("belowright split")
     vim.cmd("resize 15")
-    vim.cmd("terminal cd '" .. file_dir .. "' && gdb '" .. output_name .. "'")
+    vim.cmd("terminal cd " .. vim.fn.shellescape(file_dir) .. " && gdb " .. vim.fn.shellescape(executable_name))
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
@@ -1036,7 +1290,7 @@ int main() {
     local makefile = io.open(project_name .. "/Makefile", "w")
     if makefile then
       makefile:write(string.format([[
-CC = gcc
+CC = %s
 CFLAGS = -Wall -Wextra -std=c11 -g
 SRCDIR = src
 INCDIR = include
@@ -1059,14 +1313,14 @@ debug: all
 \tgdb $(TARGET)
 
 .PHONY: all clean run debug
-]], project_name))
+]], _G.get_c_compiler() or "gcc", project_name))
       makefile:close()
     end
     
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.c")
     
-    print("C project created: " .. project_name)
+    vim.notify("C project created: " .. project_name, vim.log.levels.INFO)
   end
 
   -- Create basic C++ project
@@ -1097,7 +1351,7 @@ int main() {
     local makefile = io.open(project_name .. "/Makefile", "w")
     if makefile then
       makefile:write(string.format([[
-CXX = g++
+CXX = %s
 CXXFLAGS = -Wall -Wextra -std=c++17 -g
 SRCDIR = src
 INCDIR = include
@@ -1120,14 +1374,14 @@ debug: all
 \tgdb $(TARGET)
 
 .PHONY: all clean run debug
-]], project_name))
+]], _G.get_cpp_compiler() or "g++", project_name))
       makefile:close()
     end
     
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.cpp")
     
-    print("C++ project created: " .. project_name)
+    vim.notify("C++ project created: " .. project_name, vim.log.levels.INFO)
   end
 
   -- Quick template for C
@@ -1164,15 +1418,23 @@ int main(int argc, char *argv[]) {
   end
 end
 
--- 9.3 SIMPLIFIED JAVA SYSTEM (FROM CODE 2)
+-- 9.3 SIMPLIFIED JAVA SYSTEM (FROM CODE 2 - IMPROVED)
 local function setup_java_system()
-  vim.g.java_projects_path = os.getenv("HOME") .. "/Desktop/tudo/projects/Java"
+  -- Multiplatform Java projects path
+  local home_dir = _G.get_home_dir()
+  local os = get_os()
+  
+  if os == 'windows' then
+    vim.g.java_projects_path = home_dir .. "\\Desktop\\projects\\Java"
+  else
+    vim.g.java_projects_path = home_dir .. "/Desktop/projects/Java"
+  end
 
   -- DETECT JAVA LIBRARIES SIMPLY
   function _G.detect_java_libraries()
     local current_dir = vim.fn.expand("%:p:h")
     local lib_dirs = {
-      os.getenv("HOME") .. "/java-libraries",
+      _G.get_home_dir() .. "/java-libraries",
       current_dir .. "/lib",
       current_dir .. "/libs",
       current_dir,
@@ -1200,7 +1462,12 @@ local function setup_java_system()
     local class_name = vim.fn.expand("%:t:r")
     
     if not current_file:match("%.java$") then
-      print("This is not a Java file!")
+      vim.notify("This is not a Java file!", vim.log.levels.WARN)
+      return
+    end
+    
+    if not _G.command_exists('java') or not _G.command_exists('javac') then
+      vim.notify("Java JDK is not installed!", vim.log.levels.ERROR)
       return
     end
     
@@ -1212,40 +1479,41 @@ local function setup_java_system()
       table.insert(classpath_parts, lib)
     end
     
-    local classpath = table.concat(classpath_parts, ":")
+    local os = get_os()
+    local classpath_separator = os == 'windows' and ";" or ":"
+    local classpath = table.concat(classpath_parts, classpath_separator)
     
     if #libraries > 0 then
-      print(" " .. #libraries .. " library(s) detected")
+      vim.notify(" " .. #libraries .. " library(s) detected", vim.log.levels.INFO)
     else
-      print(" No additional libraries detected")
+      vim.notify(" No additional libraries detected", vim.log.levels.INFO)
     end
     
     -- Compile
-    print("Compiling " .. file_name .. "...")
+    vim.notify("Compiling " .. file_name .. "...", vim.log.levels.INFO)
     
     local compile_cmd = string.format(
-      "cd '%s' && javac -cp '%s' '%s'",
-      file_dir,
-      classpath,
-      file_name
+      "cd %s && javac -cp %s %s",
+      vim.fn.shellescape(file_dir),
+      vim.fn.shellescape(classpath),
+      vim.fn.shellescape(file_name)
     )
     
     local compile_result = vim.fn.system(compile_cmd)
     
     if compile_result ~= "" then
-      print("Compilation error:")
-      print(compile_result)
+      vim.notify("Compilation error:\n" .. compile_result, vim.log.levels.ERROR)
       return false
     end
     
     -- Execute
-    print("Compilation successful!")
-    print("Running " .. class_name .. "...")
+    vim.notify("Compilation successful!", vim.log.levels.INFO)
+    vim.notify("Running " .. class_name .. "...", vim.log.levels.INFO)
     
     local run_cmd = string.format(
-      "cd '%s' && java -cp '%s' %s",
-      file_dir,
-      classpath,
+      "cd %s && java -cp %s %s",
+      vim.fn.shellescape(file_dir),
+      vim.fn.shellescape(classpath),
       class_name
     )
     
@@ -1260,7 +1528,7 @@ local function setup_java_system()
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
-        print("Terminal closed")
+        vim.notify("Terminal closed", vim.log.levels.INFO)
       end
     end, { buffer = term_buf, desc = "Close terminal" })
     
@@ -1276,22 +1544,29 @@ local function setup_java_system()
     local class_name = vim.fn.expand("%:t:r")
     
     if not current_file:match("%.java$") then
-      print("This is not a Java file!")
+      vim.notify("This is not a Java file!", vim.log.levels.WARN)
       return
     end
     
-    print("Compiling " .. file_name .. "...")
+    if not _G.command_exists('java') or not _G.command_exists('javac') then
+      vim.notify("Java JDK is not installed!", vim.log.levels.ERROR)
+      return
+    end
     
-    local compile_cmd = string.format("cd '%s' && javac '%s'", file_dir, file_name)
+    vim.notify("Compiling " .. file_name .. "...", vim.log.levels.INFO)
+    
+    local compile_cmd = string.format("cd %s && javac %s", 
+      vim.fn.shellescape(file_dir),
+      vim.fn.shellescape(file_name))
     local compile_result = vim.fn.system(compile_cmd)
     
     if compile_result ~= "" then
-      print("Compilation error:")
-      print(compile_result)
+      vim.notify("Compilation error:\n" .. compile_result, vim.log.levels.ERROR)
       return
     end
     
-    local run_cmd = string.format("cd '%s' && java %s", file_dir, class_name)
+    local run_cmd = string.format("cd %s && java %s", 
+      vim.fn.shellescape(file_dir), class_name)
     
     vim.cmd("belowright split")
     vim.cmd("resize 10")
@@ -1303,12 +1578,12 @@ local function setup_java_system()
     vim.keymap.set('n', '<leader>cx', function()
       if vim.api.nvim_buf_is_valid(term_buf) then
         vim.api.nvim_buf_delete(term_buf, { force = true })
-        print("Terminal closed")
+        vim.notify("Terminal closed", vim.log.levels.INFO)
       end
     end, { buffer = term_buf, desc = "Close terminal" })
     
     vim.cmd("startinsert")
-    print("Java executed: " .. class_name)
+    vim.notify("Java executed: " .. class_name, vim.log.levels.INFO)
   end
 
   -- VIEW CLASSPATH (OPTIONAL)
@@ -1339,7 +1614,7 @@ public class Main {
   end
 end
 
--- Nim System
+-- Nim System (IMPROVED)
 local function setup_nim_system()
   function _G.compile_nim()
     local current_file = vim.fn.expand("%:p")
@@ -1347,23 +1622,37 @@ local function setup_nim_system()
     local file_dir = vim.fn.expand("%:p:h")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.nim$") then
-      print("This is not a Nim file!")
+      vim.notify("This is not a Nim file!", vim.log.levels.WARN)
       return
     end
     
-    local compile_cmd = string.format("cd %s && nim c --hints:off --warnings:off '%s'", 
+    if not _G.command_exists('nim') then
+      vim.notify("Nim is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local output_file = output_name .. output_ext
+    
+    local compile_cmd = string.format("cd %s && nim c --hints:off --warnings:off %s -o:%s", 
       vim.fn.shellescape(file_dir),
-      vim.fn.shellescape(vim.fn.expand("%:t"))
+      vim.fn.shellescape(vim.fn.expand("%:t")),
+      vim.fn.shellescape(output_file)
     )
     
-    print("Compiling " .. vim.fn.expand("%:t") .. "...")
-    vim.cmd("!" .. compile_cmd)
-    print("Executable created: " .. output_name)
+    vim.notify("Compiling " .. vim.fn.expand("%:t") .. "...", vim.log.levels.INFO)
+    local result = vim.fn.system(compile_cmd)
+    if result ~= "" then
+      vim.notify("Compilation output:\n" .. result, vim.log.levels.INFO)
+    else
+      vim.notify("Executable created: " .. output_file, vim.log.levels.INFO)
+    end
   end
 
   function _G.run_nim()
@@ -1371,18 +1660,28 @@ local function setup_nim_system()
     local output_name = vim.fn.expand("%:t:r")
     local file_dir = vim.fn.expand("%:p:h")
     
-    local executable_path = file_dir .. "/" .. output_name
+    local os = get_os()
+    local output_ext = os == 'windows' and '.exe' or ''
+    local executable_name = output_name .. output_ext
+    local executable_path = file_dir .. "/" .. executable_name
     
     if vim.fn.filereadable(executable_path) == 0 then
-      print("Executable not found! Compile first.")
+      vim.notify("Executable not found! Compile first.", vim.log.levels.WARN)
       return
     end
     
-    print("Running: " .. output_name)
+    vim.notify("Running: " .. executable_name, vim.log.levels.INFO)
+    
+    local run_cmd
+    if os == 'windows' then
+      run_cmd = "cd " .. vim.fn.shellescape(file_dir) .. " && " .. vim.fn.shellescape(executable_name)
+    else
+      run_cmd = "cd " .. vim.fn.shellescape(file_dir) .. " && ./" .. vim.fn.shellescape(executable_name)
+    end
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
-    vim.cmd("terminal cd '" .. file_dir .. "' && ./'" .. output_name .. "'")
+    vim.cmd("terminal " .. run_cmd)
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
@@ -1394,7 +1693,7 @@ local function setup_nim_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.nim$") then
-      print("This is not a Nim file!")
+      vim.notify("This is not a Nim file!", vim.log.levels.WARN)
       return
     end
     
@@ -1409,16 +1708,21 @@ local function setup_nim_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.nim$") then
-      print("This is not a Nim file!")
+      vim.notify("This is not a Nim file!", vim.log.levels.WARN)
       return
     end
     
-    print("Running Nim script...")
+    if not _G.command_exists('nim') then
+      vim.notify("Nim is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("Running Nim script...", vim.log.levels.INFO)
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
@@ -1455,7 +1759,7 @@ echo "Sum of 2 + 3 = ", soma(2, 3)
     vim.cmd("cd " .. project_name)
     vim.cmd("edit src/main.nim")
     
-    print("Nim project created: " .. project_name)
+    vim.notify("Nim project created: " .. project_name, vim.log.levels.INFO)
   end
 
   function _G.nim_template()
@@ -1482,7 +1786,7 @@ when isMainModule:
   end
 end
 
--- FIXED PHP SYSTEM
+-- FIXED PHP SYSTEM (IMPROVED)
 local function setup_php_system()
   -- Specific settings for PHP files
   vim.api.nvim_create_autocmd("FileType", {
@@ -1491,7 +1795,7 @@ local function setup_php_system()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("PHP mode activated! Use <leader>phr to run in terminal")
+      vim.notify("PHP mode activated! Use <leader>phr to run in terminal", vim.log.levels.INFO)
     end
   })
 
@@ -1500,45 +1804,67 @@ local function setup_php_system()
     local current_file = vim.fn.expand("%:p")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.php$") then
-      print("This is not a PHP file!")
+      vim.notify("This is not a PHP file!", vim.log.levels.WARN)
       return
     end
     
-    print("Running PHP in terminal...")
+    if not _G.command_exists('php') then
+      vim.notify("PHP is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("Running PHP in terminal...", vim.log.levels.INFO)
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
-    vim.cmd("terminal php '" .. current_file .. "'")
+    vim.cmd("terminal php " .. vim.fn.shellescape(current_file))
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
     
     vim.cmd("startinsert")
-    print("PHP executed: " .. vim.fn.fnamemodify(current_file, ":t"))
+    vim.notify("PHP executed: " .. vim.fn.fnamemodify(current_file, ":t"), vim.log.levels.INFO)
   end
 
   -- PHP system diagnostic function
   function _G.debug_php_system()
-    print("Diagnosing PHP system...")
+    vim.notify("Diagnosing PHP system...", vim.log.levels.INFO)
     
     -- Check if PHP is installed
     local php_check = vim.fn.system("php -v 2>/dev/null | head -1")
     if vim.v.shell_error ~= 0 then
-      print("PHP not found or not installed")
-      print("Install: sudo apt install php (Linux)")
+      vim.notify("PHP not found or not installed", vim.log.levels.ERROR)
+      local os = get_os()
+      if os == 'linux' then
+        print("💡 Install: sudo apt install php")
+      elseif os == 'macos' then
+        print("💡 Install: brew install php")
+      elseif os == 'windows' then
+        print("💡 Install from: https://windows.php.net/download/")
+      end
     else
       print("PHP found: " .. vim.fn.trim(php_check))
     end
     
     -- Check running PHP process
-    local php_process = vim.fn.system("pgrep -f 'php -S' 2>/dev/null")
+    local os = get_os()
+    local php_process
+    if os == 'windows' then
+      php_process = vim.fn.system('tasklist /fi "imagename eq php*" 2>nul')
+    else
+      php_process = vim.fn.system("pgrep -f 'php -S' 2>/dev/null")
+    end
+    
     if php_process ~= "" then
-      print("PHP server running - PIDs: " .. vim.fn.trim(php_process))
+      print("PHP server running")
+      if os ~= 'windows' then
+        print("PIDs: " .. vim.fn.trim(php_process))
+      end
     else
       print("No PHP server running")
     end
@@ -1559,16 +1885,21 @@ local function setup_php_system()
     local file_name = vim.fn.expand("%:t")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.php$") then
-      print("This is not a PHP file!")
+      vim.notify("This is not a PHP file!", vim.log.levels.WARN)
       return
     end
     
-    print("Starting FIXED PHP server...")
+    if not _G.command_exists('php') then
+      vim.notify("PHP is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("Starting FIXED PHP server...", vim.log.levels.INFO)
     print("File: " .. file_name)
     print("Directory: " .. current_dir)
     
@@ -1577,7 +1908,7 @@ local function setup_php_system()
     
     -- Check if file exists
     if vim.fn.filereadable(current_file) == 0 then
-      print("File does not exist: " .. current_file)
+      vim.notify("File does not exist: " .. current_file, vim.log.levels.ERROR)
       return
     end
     
@@ -1594,7 +1925,7 @@ local function setup_php_system()
               if line and line ~= "" then
                 -- Filter PHP server logs
                 if not line:match("^%[.*%]") then
-                  print("PHP: " .. line)
+                  vim.notify("PHP: " .. line, vim.log.levels.INFO)
                 end
               end
             end
@@ -1604,7 +1935,7 @@ local function setup_php_system()
           if data then
             for _, line in ipairs(data) do
               if line and line ~= "" then
-                print("PHP Error: " .. line)
+                vim.notify("PHP Error: " .. line, vim.log.levels.ERROR)
               end
             end
           end
@@ -1612,11 +1943,11 @@ local function setup_php_system()
       })
       
       if php_job <= 0 then
-        print("Failed to start PHP server")
+        vim.notify("Failed to start PHP server", vim.log.levels.ERROR)
         return
       end
       
-      print("Waiting for server to start...")
+      vim.notify("Waiting for server to start...", vim.log.levels.INFO)
       
       -- Wait for server to start completely
       vim.defer_fn(function()
@@ -1635,46 +1966,27 @@ local function setup_php_system()
         
         -- Test if server is responding
         vim.defer_fn(function()
-          local test_cmd = string.format("curl -s -o /dev/null -w '%%{http_code}' http://localhost:8000/%s 2>/dev/null", file_name)
+          local test_cmd
+          local os = get_os()
+          if os == 'windows' then
+            test_cmd = string.format('powershell -Command "try { $response = Invoke-WebRequest -Uri http://localhost:8000/%s -TimeoutSec 3; Write-Output $response.StatusCode } catch { Write-Output 000 }"', file_name)
+          else
+            test_cmd = string.format("curl -s -o /dev/null -w '%%{http_code}' http://localhost:8000/%s 2>/dev/null", file_name)
+          end
+          
           local test_result = vim.fn.system(test_cmd)
           test_result = vim.fn.trim(test_result)
           
           if test_result == "200" then
-            print("Connection test: SUCCESS (HTTP 200)")
+            vim.notify("Connection test: SUCCESS (HTTP 200)", vim.log.levels.INFO)
           else
-            print("Connection test: FAILED (Code: " .. (test_result == "" and "N/A" or test_result) .. ")")
+            vim.notify("Connection test: FAILED (Code: " .. (test_result == "" and "N/A" or test_result) .. ")", vim.log.levels.WARN)
             print("Try accessing manually: " .. url)
           end
         end, 1000)
         
         -- Open in browser
-        local os = get_os()
-        local browser_cmd
-        
-        if os == 'linux' then
-          browser_cmd = {"xdg-open", url}
-        elseif os == 'macos' then
-          browser_cmd = {"open", url}
-        elseif os == 'windows' then
-          browser_cmd = {"cmd", "/c", "start", url}
-        else
-          print("System not identified, open manually:")
-          print("   " .. url)
-          return
-        end
-        
-        print("Opening browser...")
-        local browser_job = vim.fn.jobstart(browser_cmd, { 
-          detach = true,
-          on_exit = function()
-            print("Browser started!")
-          end
-        })
-        
-        if browser_job <= 0 then
-          print("Could not open browser automatically")
-          print("Access manually: " .. url)
-        end
+        _G.open_url(url)
         
       end, 2000) -- 2 seconds for server to start
       
@@ -1683,12 +1995,10 @@ local function setup_php_system()
 
   -- Stop PHP server
   function _G.stop_php_server()
-    _G.kill_process("php")
-    local result = vim.fn.system("pgrep -f 'php -S' 2>/dev/null")
-    if result == "" then
-      print("PHP server stopped successfully!")
+    if _G.kill_process("php") then
+      vim.notify("PHP server stopped successfully!", vim.log.levels.INFO)
     else
-      print("No PHP server was running")
+      vim.notify("No PHP server was running", vim.log.levels.INFO)
     end
   end
 
@@ -1698,12 +2008,17 @@ local function setup_php_system()
     local current_dir = vim.fn.expand("%:p:h")
     local file_name = vim.fn.expand("%:t")
     
-    print("STARTING ULTRA-SIMPLE PHP...")
+    if not _G.command_exists('php') then
+      vim.notify("PHP is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("STARTING ULTRA-SIMPLE PHP...", vim.log.levels.INFO)
     print("File: " .. file_name)
     print("Folder: " .. current_dir)
     
     -- Command to execute in terminal
-    local cmd = "cd '" .. current_dir .. "' && php -S localhost:8000"
+    local cmd = "cd " .. vim.fn.shellescape(current_dir) .. " && php -S localhost:8000"
     
     print("Command: " .. cmd)
     print("URL: http://localhost:8000/" .. file_name)
@@ -1825,12 +2140,12 @@ echo "System initialized!\n";
     vim.cmd("cd " .. project_name)
     vim.cmd("edit public/index.php")
     
-    print("PHP project created: " .. project_name)
-    print("Run 'composer install' to install dependencies")
+    vim.notify("PHP project created: " .. project_name, vim.log.levels.INFO)
+    print("💡 Run 'composer install' to install dependencies")
   end
 end
 
--- C# System
+-- C# System (IMPROVED)
 local function setup_csharp_system()
   function _G.compile_csharp()
     local current_file = vim.fn.expand("%:p")
@@ -1838,12 +2153,17 @@ local function setup_csharp_system()
     local file_name = vim.fn.expand("%:t:r")
     
     if current_file == "" then
-      print("Save the file first!")
+      vim.notify("Save the file first!", vim.log.levels.WARN)
       return
     end
     
     if not string.match(current_file, "%.cs$") then
-      print("This is not a C# file!")
+      vim.notify("This is not a C# file!", vim.log.levels.WARN)
+      return
+    end
+    
+    if not _G.command_exists('dotnet') then
+      vim.notify(".NET SDK is not installed!", vim.log.levels.ERROR)
       return
     end
     
@@ -1851,9 +2171,13 @@ local function setup_csharp_system()
       vim.fn.shellescape(file_dir)
     )
     
-    print("Compiling C# project...")
-    vim.cmd("!" .. compile_cmd)
-    print("C# project compiled!")
+    vim.notify("Compiling C# project...", vim.log.levels.INFO)
+    local result = vim.fn.system(compile_cmd)
+    if result ~= "" then
+      vim.notify("Build output:\n" .. result, vim.log.levels.INFO)
+    else
+      vim.notify("C# project compiled!", vim.log.levels.INFO)
+    end
   end
 
   function _G.run_csharp()
@@ -1861,15 +2185,20 @@ local function setup_csharp_system()
     local file_dir = vim.fn.expand("%:p:h")
     
     if not string.match(current_file, "%.cs$") then
-      print("This is not a C# file!")
+      vim.notify("This is not a C# file!", vim.log.levels.WARN)
       return
     end
     
-    print("Running C# project...")
+    if not _G.command_exists('dotnet') then
+      vim.notify(".NET SDK is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
+    vim.notify("Running C# project...", vim.log.levels.INFO)
     
     vim.cmd("belowright split")
     vim.cmd("resize 12")
-    vim.cmd("terminal cd '" .. file_dir .. "' && dotnet run")
+    vim.cmd("terminal cd " .. vim.fn.shellescape(file_dir) .. " && dotnet run")
     
     local term_buf = vim.api.nvim_get_current_buf()
     create_close_button(term_buf)
@@ -1881,7 +2210,7 @@ local function setup_csharp_system()
     local current_file = vim.fn.expand("%:p")
     
     if not string.match(current_file, "%.cs$") then
-      print("This is not a C# file!")
+      vim.notify("This is not a C# file!", vim.log.levels.WARN)
       return
     end
     
@@ -1896,13 +2225,18 @@ local function setup_csharp_system()
     local project_name = vim.fn.input("C# project name: ")
     if project_name == "" then return end
     
+    if not _G.command_exists('dotnet') then
+      vim.notify(".NET SDK is not installed!", vim.log.levels.ERROR)
+      return
+    end
+    
     local create_cmd = string.format("dotnet new console -n %s", project_name)
     vim.cmd("!" .. create_cmd)
     
     vim.cmd("cd " .. project_name)
     vim.cmd("edit Program.cs")
     
-    print("C# project created: " .. project_name)
+    vim.notify("C# project created: " .. project_name, vim.log.levels.INFO)
   end
 
   function _G.csharp_template()
@@ -1933,14 +2267,19 @@ namespace HelloWorld
     local file_dir = vim.fn.expand("%:p:h")
     
     if not string.match(current_file, "%.cs$") then
-      print("This is not a C# file!")
+      vim.notify("This is not a C# file!", vim.log.levels.WARN)
       return
     end
     
     _G.compile_csharp()
     
-    print("Starting C# debug...")
-    require("dap").continue()
+    vim.notify("Starting C# debug...", vim.log.levels.INFO)
+    local dap_ok, dap = pcall(require, "dap")
+    if dap_ok then
+      dap.continue()
+    else
+      vim.notify("DAP not available for C# debugging", vim.log.levels.WARN)
+    end
   end
 end
 
@@ -1950,11 +2289,11 @@ end
 
 local function setup_utility_functions()
   function _G.diagnose_and_fix_lsp()
-    print("Diagnosing LSP...")
+    vim.notify("Diagnosing LSP...", vim.log.levels.INFO)
     
     local clients = vim.lsp.get_active_clients()
     if #clients == 0 then
-      print("No active LSP")
+      vim.notify("No active LSP", vim.log.levels.WARN)
       print("Run :Mason to install LSPs")
       return
     end
@@ -1966,12 +2305,12 @@ local function setup_utility_functions()
     end
     
     vim.cmd("messages clear")
-    print("Messages cleared")
+    vim.notify("Messages cleared", vim.log.levels.INFO)
     
     for _, client in ipairs(clients) do
       if not client.initialized then
         vim.lsp.stop_client(client.id)
-        print("Restarting: " .. client.name)
+        vim.notify("Restarting: " .. client.name, vim.log.levels.INFO)
       end
     end
   end
@@ -1983,7 +2322,7 @@ local function setup_utility_functions()
         vim.lsp.stop_client(client.id, true)
       end
     end
-    print("LSP cleaned!")
+    vim.notify("LSP cleaned!", vim.log.levels.INFO)
   end
 
   function _G.check_mason_status()
@@ -1991,10 +2330,10 @@ local function setup_utility_functions()
     local mason_lsp_ok = pcall(require, "mason-lspconfig")
     
     if mason_ok and mason_lsp_ok then
-      print("Mason loaded successfully!")
+      vim.notify("Mason loaded successfully!", vim.log.levels.INFO)
       print("Use :Mason to manage LSPs")
     else
-      print("Mason not loaded correctly")
+      vim.notify("Mason not loaded correctly", vim.log.levels.ERROR)
     end
   end
 
@@ -2002,7 +2341,7 @@ local function setup_utility_functions()
     local clients = vim.lsp.get_active_clients()
     
     if #clients == 0 then
-      print("NO ACTIVE LSP - Auto-completion broken!")
+      vim.notify("NO ACTIVE LSP - Auto-completion broken!", vim.log.levels.ERROR)
       print("Run :MasonInstallAll")
       return
     end
@@ -2022,7 +2361,7 @@ local function setup_utility_functions()
 
   function _G.clear_messages()
     vim.cmd("messages clear")
-    print("Messages cleared!")
+    vim.notify("Messages cleared!", vim.log.levels.INFO)
   end
 
   function _G.python_template()
@@ -2749,7 +3088,7 @@ local function setup_language_specific()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("C# mode activated! Use F10 for quick execution")
+      vim.notify("C# mode activated! Use F10 for quick execution", vim.log.levels.INFO)
     end
   })
 
@@ -2757,7 +3096,7 @@ local function setup_language_specific()
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "c",
     callback = function()
-      print("C mode activated! Use F7 to compile and run")
+      vim.notify("C mode activated! Use F7 to compile and run", vim.log.levels.INFO)
     end
   })
 
@@ -2765,7 +3104,7 @@ local function setup_language_specific()
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {"cpp", "cc"},
     callback = function()
-      print("C++ mode activated! Use F7 to compile and run")
+      vim.notify("C++ mode activated! Use F7 to compile and run", vim.log.levels.INFO)
     end
   })
 
@@ -2776,7 +3115,7 @@ local function setup_language_specific()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("Java mode activated! Use F8 for execution with libraries")
+      vim.notify("Java mode activated! Use F8 for execution with libraries", vim.log.levels.INFO)
     end
   })
 
@@ -2787,7 +3126,7 @@ local function setup_language_specific()
       vim.bo.tabstop = 2
       vim.bo.shiftwidth = 2
       vim.bo.expandtab = true
-      print("Nim mode activated! Use F9 for quick execution")
+      vim.notify("Nim mode activated! Use F9 for quick execution", vim.log.levels.INFO)
     end
   })
 
@@ -2798,7 +3137,7 @@ local function setup_language_specific()
       vim.bo.tabstop = 4
       vim.bo.shiftwidth = 4
       vim.bo.expandtab = true
-      print("PHP mode activated! Use <leader>phr to run")
+      vim.notify("PHP mode activated! Use <leader>phr to run", vim.log.levels.INFO)
     end
   })
 end
@@ -2948,6 +3287,12 @@ local function init()
   setup_language_specific()
   setup_dashboard()
 
+  -- Initial dependency check
+  vim.defer_fn(function()
+    _G.check_dependencies()
+  end, 2000)
+
+  vim.notify("Neovim configuration loaded successfully!", vim.log.levels.INFO)
 end
 
 init()
