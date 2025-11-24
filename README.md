@@ -351,4 +351,4 @@ gcc --version
 
 *Last updated: 12/nov/2025 - SYNCHRONIZED WITH CODE*
 
-- Show/hide hidden files with Ctrl+H
+- Code Optimization
