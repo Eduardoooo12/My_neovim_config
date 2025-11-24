@@ -64,6 +64,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 |----------|-------------|
 | `<leader>dd` | Open Dashboard |
 | `<leader>df` | Diagnose and fix LSP |
+| `<leader>ds` | Diagnose syntax issues |
+| `<leader>rs` | Reset syntax highlighting |
+| `<leader>chk` | Check system dependencies |
 | `<leader>as` | Toggle Auto-save |
 | `<leader>cm` | Clear messages |
 | `<C-b>` | Toggle file explorer (Neo-tree) |
@@ -91,17 +94,15 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 | `<leader>tc` | Close all terminals |
 | `<leader>cx` | Close current terminal |
 
-### ☕ Java System
+### ☕ Java System (SIMPLIFIED)
 
 | Shortcut | Description |
 |----------|-------------|
 | `<leader>jc` | Compile/Run Java (with libs) |
 | `<leader>jr` | Quick Java (no libs) |
 | `<leader>jp` | Show classpath |
-| `<leader>jd` | Compile for debug |
-| `<leader>jn` | Create Java project |
 | `<leader>jt` | Java template |
-| `<F8>` | Quick Java test |
+| `<F8>` | Run Java (with libraries) |
 
 ### 🐍 Python System
 
@@ -198,7 +199,7 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 | `<F5>` | Open clean terminal |
 | `<F6>` | Run Python |
 | `<F7>` | Compile + Run C/C++ |
-| `<F8>` | Quick Java test |
+| `<F8>` | Run Java (with libraries) |
 | `<F9>` | Compile+Run Nim |
 | `<F10>` | Compile+Run C# |
 
@@ -315,7 +316,7 @@ public class Test {
     }
 }
 ```
-# Press <leader>jc to run
+# Press F8 to run (with libraries)
 
 **Web Development:**
 Open any HTML file and press <leader>lss to start live server
@@ -348,6 +349,6 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 12/nov/2025*
+*Last updated: 12/nov/2025 - SYNCHRONIZED WITH CODE*
 
 - Show/hide hidden files with Ctrl+H
