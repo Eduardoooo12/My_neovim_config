@@ -1,5 +1,5 @@
 -- =============================================
--- Best neovim || by: Eduuu, the best
+-- Best neovim || by: Eduuu, the best       v8.5
 -- =============================================
 
 -- =============================================
@@ -97,8 +97,10 @@ local function setup_basic_config()
     smartcase = true,
     hlsearch = false,
     incsearch = true,
-    wrap = false,
-    breakindent = true,
+    wrap = true,
+    linebreak = false,
+    breakindent = false,
+    showbreak = '',
     tabstop = 2,
     shiftwidth = 2,
     expandtab = true,
@@ -116,13 +118,34 @@ local function setup_basic_config()
     swapfile = false,
     backup = false,
     undofile = true,
+    -- NOVAS CONFIGURAÇÕES PARA COMPORTAMENTO VSCode:
+    display = 'lastline',           -- Mostra o máximo possível da última linha
+    whichwrap = 'h,l,<,>,[,],b,s',  -- Permover navegação entre linhas quebradas
   }
 
   for k, v in pairs(options) do
     vim.opt[k] = v
   end
-end
 
+  -- NAVEGAÇÃO POR LINHAS VIRTUAIS (Comportamento VSCode)
+  -- Isso faz cada linha quebrada ser tratada como uma linha separada
+  vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up by visual line" })
+  vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Move down by visual line" })
+  vim.keymap.set('v', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up by visual line" })
+  vim.keymap.set('v', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Move down by visual line" })
+  
+  -- Setas também navegam por linhas visuais
+  vim.keymap.set('n', '<Up>', "gk", { desc = "Move up by visual line" })
+  vim.keymap.set('n', '<Down>', "gj", { desc = "Move down by visual line" })
+  vim.keymap.set('v', '<Up>', "gk", { desc = "Move up by visual line" })
+  vim.keymap.set('v', '<Down>', "gj", { desc = "Move down by visual line" })
+  
+  -- Home/End também por linhas visuais
+  vim.keymap.set('n', '0', "g0", { desc = "Move to start of visual line" })
+  vim.keymap.set('n', '$', "g$", { desc = "Move to end of visual line" })
+  vim.keymap.set('v', '0', "g0", { desc = "Move to start of visual line" })
+  vim.keymap.set('v', '$', "g$", { desc = "Move to end of visual line" })
+end
 -- =============================================
 -- 3. UTILITY FUNCTIONS (MULTIPLATFORM FIXED)
 -- =============================================
