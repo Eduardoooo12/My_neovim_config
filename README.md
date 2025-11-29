@@ -1,4 +1,11 @@
-# My Neovim Config
+# My Neovim Config || V8.5
+
+### 🆕 NEW IN V8.5
+
+- **🎯 VSCode-style Navigation**: j/k, arrows, Home/End navigate by VISUAL lines
+- **🔥 Smart Line Wrapping**: `wrap = true` with intelligent navigation
+- **⚡ Updated LSP APIs**: Compatibility with latest Neovim versions
+- **🚀 Enhanced Editing**: More intuitive text navigation experience
 
 Transform your Neovim into a complete IDE without the complexity of manual configurations!
 
@@ -62,6 +69,9 @@ Transform your Neovim into a complete IDE without the complexity of manual confi
 
 | Shortcut | Description |
 |----------|-------------|
+| `j`/`k` | Navigate by VISUAL lines (VSCode behavior) |
+| `↑`/`↓` | Arrow keys navigate visual lines |
+| `0`/`$` | Home/End navigate visual lines |
 | `<leader>dd` | Open Dashboard |
 | `<leader>df` | Diagnose and fix LSP |
 | `<leader>ds` | Diagnose syntax issues |
@@ -349,6 +359,7 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 12/nov/2025 - SYNCHRONIZED WITH CODE*
+*Last updated: 29/nov/2025 - SYNCHRONIZED WITH CODE v8.5*
 
+- VSCode-style Navigation
 - Code Optimization
