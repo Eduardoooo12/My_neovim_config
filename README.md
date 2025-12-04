@@ -253,7 +253,7 @@ brew install neovim git curl
 
 **For Windows:**
 
-**Instaling choco**
+**Installing choco**
 
 run this command in your powershell as admin:
 
@@ -331,9 +331,38 @@ public class Test {
 # Press F8 to run (with libraries)
 
 **Web Development:**
-Open any HTML file and press <leader>lss to start live server
+Open any HTML file and press `<leader>lss` to start live server
 
 ## 🆘 Troubleshooting
+
+**If error: `[mason-lspconfig.nvim] failed to install nimls. Missing dependencies: Nim, .NET SDK`**
+
+The installation of `nimls` fails if the Nim compiler and the .NET SDK are not installed on the system.
+
+1.  **Install Nim (Recommended):** Use the official version manager `choosenim`.
+
+    ```
+    curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+    ```
+
+2.  **Update your `$PATH`:** `choosenim` installs `nimble` in `~/.nimble/bin`. Add this line to your shell configuration file (`~/.zshrc` or `~/.bashrc`):
+
+    ```
+    export PATH=$HOME/.nimble/bin:$PATH
+    ```
+
+3.  **Reload the terminal** (```source ~/.zshrc```).
+
+4.  **Install .NET SDK:** The NimLS (Nim Language Server) has a .NET dependency (required for some tools) that Mason attempts to resolve.
+
+    * **Ubuntu/Debian:** Follow the official Microsoft instructions.
+    * **Windows:** Use ```choco install dotnet-sdk``` (if you used Chocolatey in Step 2).
+    
+    *After installation, verify with ```dotnet --version```.*
+
+5.  **Reinstall `nimls`** inside Neovim (```:Mason``` and install `nimls` again).
+
+---
 
 **Check installations:**
 ```
@@ -351,7 +380,7 @@ gcc --version
 
 ## 📦 Tech Stack
 
-- Neovim ≥ 0.8
+- Neovim ≥ 0.11.5
 - Lazy.nvim - Plugin manager
 - Mason.nvim - LSP manager
 - Treesitter - Syntax parsing
@@ -361,7 +390,7 @@ gcc --version
 
 **Ready to code in any language with professional efficiency!** 🚀
 
-*Last updated: 29/nov/2025 - SYNCHRONIZED WITH CODE v8.5*
+*Last updated: 04/dez/2025 - SYNCHRONIZED WITH CODE v8.5*
 
 - VSCode-style Navigation
 - Code Optimization
