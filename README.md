@@ -1,5 +1,7 @@
 # My Neovim Config || V8.5
 
+- **Minimum required Neovim version: 0.11.5**
+
 ### 🆕 NEW IN V8.5
 
 - **🎯 VSCode-style Navigation**: j/k, arrows, Home/End navigate by VISUAL lines
